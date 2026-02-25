@@ -4,6 +4,7 @@ import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../data/models/instance_model.dart';
+import '../../../../shared/widgets/heartbeat_pulse.dart';
 
 /// A single instance card displaying collapsed header and optional
 /// expanded content (pipeline, agent nexus, log, team mode).
@@ -101,23 +102,11 @@ class InstanceCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Status dot + label
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: statusColor,
-                boxShadow: instance.isActive
-                    ? [
-                        BoxShadow(
-                          color: statusColor.withValues(alpha: 0.5),
-                          blurRadius: 6,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : null,
-              ),
+            // Status dot + label (pulsing when active)
+            HeartbeatPulse(
+              color: statusColor,
+              isAnimated: instance.isActive,
+              size: 8,
             ),
             const SizedBox(width: FiftySpacing.xs),
             Text(

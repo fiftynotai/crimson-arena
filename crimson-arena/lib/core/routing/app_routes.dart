@@ -4,6 +4,8 @@ abstract class AppRoutes {
   static const String instances = '/instances';
   static const String instanceDetail = '/instances/:id';
   static const String agents = '/agents';
+  static const String events = '/events';
+  static const String tasks = '/tasks';
   static const String achievements = '/achievements';
   static const String skills = '/skills';
 }

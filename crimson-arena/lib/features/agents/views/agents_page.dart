@@ -26,7 +26,7 @@ class AgentsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ArenaScaffold(
       title: 'AGENTS',
-      activeTabIndex: 2,
+      activeTabIndex: 4,
       body: GetX<AgentsViewModel>(
         builder: (controller) {
           if (controller.isLoading.value) {

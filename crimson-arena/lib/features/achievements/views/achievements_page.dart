@@ -14,7 +14,7 @@ import 'widgets/category_filter_chips.dart';
 ///
 /// Layout:
 /// ```
-/// ArenaScaffold(title: 'ACHIEVEMENTS', activeTabIndex: 3)
+/// ArenaScaffold(title: 'ACHIEVEMENTS', activeTabIndex: 5)
 ///   Column
 ///     AchievementSummaryHeader  -- points, unlocked count, rarity breakdown
 ///     CategoryFilterChips       -- All, Hunt, Agent, Brief, Session, Quality, Team
@@ -69,7 +69,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
   Widget build(BuildContext context) {
     return ArenaScaffold(
       title: 'ACHIEVEMENTS',
-      activeTabIndex: 3,
+      activeTabIndex: 5,
       body: Obx(() {
         if (_vm.isLoading.value) {
           return const Center(

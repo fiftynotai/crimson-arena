@@ -5,12 +5,16 @@ import '../../features/achievements/bindings/achievements_bindings.dart';
 import '../../features/achievements/views/achievements_page.dart';
 import '../../features/agents/bindings/agents_bindings.dart';
 import '../../features/agents/views/agents_page.dart';
+import '../../features/events/bindings/events_bindings.dart';
+import '../../features/events/views/events_page.dart';
 import '../../features/home/bindings/home_bindings.dart';
 import '../../features/home/views/home_page.dart';
 import '../../features/instances/bindings/instances_bindings.dart';
 import '../../features/instances/views/instances_page.dart';
 import '../../features/skills/bindings/skills_bindings.dart';
 import '../../features/skills/views/skills_page.dart';
+import '../../features/tasks/bindings/tasks_bindings.dart';
+import '../../features/tasks/views/tasks_page.dart';
 import '../../shared/widgets/slide_page_transition.dart';
 import 'app_routes.dart';
 
@@ -45,6 +49,20 @@ class AppPages {
       name: AppRoutes.instanceDetail,
       page: () => const InstancesPage(),
       binding: InstancesBindings(),
+      customTransition: _transition,
+      transitionDuration: FiftyMotion.compiling,
+    ),
+    GetPage(
+      name: AppRoutes.events,
+      page: () => const EventsPage(),
+      binding: EventsBindings(),
+      customTransition: _transition,
+      transitionDuration: FiftyMotion.compiling,
+    ),
+    GetPage(
+      name: AppRoutes.tasks,
+      page: () => const TasksPage(),
+      binding: TasksBindings(),
       customTransition: _transition,
       transitionDuration: FiftyMotion.compiling,
     ),

@@ -31,6 +31,9 @@ class ApiConstants {
   static const String brainKnowledge = '$apiBase/brain/knowledge';
   static const String agentMetricsSummary =
       '$apiBase/brain/agent-metrics/summary';
+  static const String brainEvents = '$apiBase/brain/events';
+  static const String brainEventsStream = '$apiBase/brain/events/stream';
+  static const String brainTasks = '$apiBase/brain/tasks';
 
   // Dashboard-specific endpoints
   static const String syncStatus = '$apiBase/sync-status';
@@ -63,6 +66,12 @@ class ApiConstants {
 
   /// Brain health polling interval.
   static const int healthInterval = 60000; // 60s
+
+  /// Brain events polling interval.
+  static const int brainEventsInterval = 15000; // 15s
+
+  /// Brain tasks polling interval.
+  static const int brainTasksInterval = 60000; // 60s
 
   /// WebSocket reconnect delay.
   static const int wsReconnectDelay = 5000; // 5s

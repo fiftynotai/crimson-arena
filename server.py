@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 # ---------------------------------------------------------------------------
@@ -834,14 +834,18 @@ async def poll_brain(app: FastAPI):
     INSTANCE_INTERVAL = 30
     HEALTH_INTERVAL = 60
     PROJECTS_INTERVAL = 120
+    EVENTS_INTERVAL = 15
+    TASKS_INTERVAL = 60
 
     last_instances = 0.0
     last_health = 0.0
     last_projects = 0.0
+    last_events = 0.0
+    last_tasks = 0.0
 
     logger.info(
-        "Brain polling started (instances: %ds, health: %ds, projects/briefs: %ds)",
-        INSTANCE_INTERVAL, HEALTH_INTERVAL, PROJECTS_INTERVAL,
+        "Brain polling started (instances: %ds, health: %ds, projects/briefs: %ds, events: %ds, tasks: %ds)",
+        INSTANCE_INTERVAL, HEALTH_INTERVAL, PROJECTS_INTERVAL, EVENTS_INTERVAL, TASKS_INTERVAL,
     )
 
     while True:
@@ -946,6 +950,30 @@ async def poll_brain(app: FastAPI):
                         "data": sessions,
                     })
                 last_projects = now
+
+            # Events (every 15s -- high-frequency feed)
+            if now - last_events >= EVENTS_INTERVAL:
+                events_data = await brain_request(
+                    app, "/api/events", params={"limit": "50"}
+                )
+                if events_data:
+                    await manager.broadcast({
+                        "type": "brain_events",
+                        "data": events_data,
+                    })
+                last_events = now
+
+            # Tasks (every 60s)
+            if now - last_tasks >= TASKS_INTERVAL:
+                tasks_data = await brain_request(
+                    app, "/api/tasks", params={"limit": "100"}
+                )
+                if tasks_data:
+                    await manager.broadcast({
+                        "type": "brain_tasks",
+                        "data": tasks_data,
+                    })
+                last_tasks = now
 
         except asyncio.CancelledError:
             logger.info("Brain polling stopped")
@@ -1877,6 +1905,111 @@ async def get_brain_knowledge():
     return JSONResponse(await build_knowledge_state())
 
 
+@app.get("/api/brain/events")
+async def brain_events(
+    request: Request,
+    event_name: str = Query(default=None),
+    component: str = Query(default=None),
+    project: str = Query(default=None),
+    since: str = Query(default=None),
+    until: str = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+):
+    """Proxy to brain /api/events with optional filters."""
+    params = {}
+    if event_name is not None:
+        params["event_name"] = event_name
+    if component is not None:
+        params["component"] = component
+    if project is not None:
+        params["project"] = project
+    if since is not None:
+        params["since"] = since
+    if until is not None:
+        params["until"] = until
+    params["limit"] = str(limit)
+    params["offset"] = str(offset)
+
+    data = await brain_request(request.app, "/api/events", params=params)
+    if data is None:
+        return {"events": [], "total": 0, "limit": limit, "offset": offset}
+    return data
+
+
+@app.get("/api/brain/events/stream")
+async def brain_events_stream(
+    request: Request,
+    component: str = Query(default=None),
+    project: str = Query(default=None),
+):
+    """SSE proxy to brain /api/events/stream."""
+    brain_config = request.app.state.brain_config
+    if not brain_config.get("url") or not request.app.state.brain_client:
+        async def offline_generator():
+            yield "data: {\"status\": \"offline\", \"message\": \"Brain server not configured\"}\n\n"
+        return StreamingResponse(offline_generator(), media_type="text/event-stream")
+
+    url = f"{brain_config['url'].rstrip('/')}/api/events/stream"
+    headers = {}
+    if brain_config.get("api_key"):
+        headers["Authorization"] = f"Bearer {brain_config['api_key']}"
+    params = {}
+    if component is not None:
+        params["component"] = component
+    if project is not None:
+        params["project"] = project
+
+    async def event_generator():
+        try:
+            async with httpx.AsyncClient(timeout=None) as client:
+                async with client.stream("GET", url, headers=headers, params=params) as resp:
+                    if resp.status_code != 200:
+                        yield f"data: {{\"status\": \"error\", \"code\": {resp.status_code}}}\n\n"
+                        return
+                    async for line in resp.aiter_lines():
+                        if await request.is_disconnected():
+                            break
+                        yield f"{line}\n"
+        except Exception as exc:
+            logger.warning("Brain SSE proxy error: %s", exc)
+            yield f"data: {{\"status\": \"error\", \"message\": \"Connection lost\"}}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.get("/api/brain/tasks")
+async def brain_tasks(
+    request: Request,
+    status: str = Query(default=None),
+    task_type: str = Query(default=None),
+    project_slug: str = Query(default=None),
+    assignee: str = Query(default=None),
+    scope: str = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+):
+    """Proxy to brain /api/tasks with optional filters."""
+    params = {}
+    if status is not None:
+        params["status"] = status
+    if task_type is not None:
+        params["task_type"] = task_type
+    if project_slug is not None:
+        params["project_slug"] = project_slug
+    if assignee is not None:
+        params["assignee"] = assignee
+    if scope is not None:
+        params["scope"] = scope
+    params["limit"] = str(limit)
+    params["offset"] = str(offset)
+
+    data = await brain_request(request.app, "/api/tasks", params=params)
+    if data is None:
+        return {"tasks": [], "total": 0, "limit": limit, "offset": offset, "summary": {}}
+    return data
+
+
 @app.get("/api/skills")
 async def get_skills(range: str = "all"):
     """Skill invocation heatmap data."""
@@ -1977,6 +2110,22 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_json({"type": "brain_knowledge", "data": knowledge_data})
         except Exception:
             pass
+
+        # Send initial brain events (last 50)
+        try:
+            brain_events_data = await brain_request(app, "/api/events", params={"limit": "50"})
+            if brain_events_data:
+                await websocket.send_json({"type": "brain_events", "data": brain_events_data})
+        except Exception as exc:
+            logger.warning("Failed to send brain events: %s", exc)
+
+        # Send initial brain tasks
+        try:
+            brain_tasks_data = await brain_request(app, "/api/tasks", params={"limit": "100"})
+            if brain_tasks_data:
+                await websocket.send_json({"type": "brain_tasks", "data": brain_tasks_data})
+        except Exception as exc:
+            logger.warning("Failed to send brain tasks: %s", exc)
 
         # Keep connection alive; read messages to detect disconnects
         while True:

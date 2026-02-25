@@ -11,9 +11,9 @@ import '../../services/brain_websocket_service.dart';
 /// Shared scaffold for all Crimson Arena pages.
 ///
 /// Provides:
-/// - Top navigation bar with page tabs (HOME, INSTANCES, AGENTS, ACHIEVEMENTS, SKILLS)
+/// - Top navigation bar with page tabs (HOME, INSTANCES, EVENTS, TASKS, AGENTS, ACHIEVEMENTS, SKILLS)
 /// - Connection status badge (LIVE / OFFLINE)
-/// - Keyboard shortcuts (Ctrl+1/2/3/4/5)
+/// - Keyboard shortcuts (Ctrl+1..7)
 /// - Consistent dark theme styling with FDL v2 tokens
 /// - Responsive nav: collapses to abbreviated tabs below 600px
 class ArenaScaffold extends StatelessWidget {
@@ -23,7 +23,7 @@ class ArenaScaffold extends StatelessWidget {
   /// The page body content.
   final Widget body;
 
-  /// Index of the currently active tab (0-4).
+  /// Index of the currently active tab (0-6).
   final int activeTabIndex;
 
   const ArenaScaffold({
@@ -36,6 +36,8 @@ class ArenaScaffold extends StatelessWidget {
   static const _tabs = [
     _TabDef(label: 'HOME', shortLabel: 'HM', route: AppRoutes.home),
     _TabDef(label: 'INSTANCES', shortLabel: 'IN', route: AppRoutes.instances),
+    _TabDef(label: 'EVENTS', shortLabel: 'EV', route: AppRoutes.events),
+    _TabDef(label: 'TASKS', shortLabel: 'TK', route: AppRoutes.tasks),
     _TabDef(label: 'AGENTS', shortLabel: 'AG', route: AppRoutes.agents),
     _TabDef(
       label: 'ACHIEVEMENTS',
@@ -69,6 +71,10 @@ class ArenaScaffold extends StatelessWidget {
             () => _navigateTo(3),
         const SingleActivator(LogicalKeyboardKey.digit5, control: true):
             () => _navigateTo(4),
+        const SingleActivator(LogicalKeyboardKey.digit6, control: true):
+            () => _navigateTo(5),
+        const SingleActivator(LogicalKeyboardKey.digit7, control: true):
+            () => _navigateTo(6),
       },
       child: Focus(
         autofocus: true,

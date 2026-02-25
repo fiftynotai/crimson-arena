@@ -75,6 +75,18 @@ class BrainWebSocketService extends GetxService {
   final Rx<Map<String, dynamic>?> skillEvent =
       Rx<Map<String, dynamic>?>(null);
 
+  /// Brain events data (paginated response from /api/brain/events).
+  final Rx<Map<String, dynamic>?> brainEvents =
+      Rx<Map<String, dynamic>?>(null);
+
+  /// Brain tasks data (paginated response from /api/brain/tasks).
+  final Rx<Map<String, dynamic>?> brainTasks =
+      Rx<Map<String, dynamic>?>(null);
+
+  /// Live event feed -- individual events appended in real-time.
+  final RxList<Map<String, dynamic>> liveEventFeed =
+      <Map<String, dynamic>>[].obs;
+
   // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
@@ -172,6 +184,18 @@ class BrainWebSocketService extends GetxService {
           instanceAgentEvent.value = data;
         case 'skill_event':
           skillEvent.value = data;
+        case 'brain_events':
+          brainEvents.value = data;
+        case 'brain_tasks':
+          brainTasks.value = data;
+        case 'brain_event':
+          if (data != null) {
+            liveEventFeed.add(data);
+            // Cap at 200 entries to prevent memory growth.
+            if (liveEventFeed.length > 200) {
+              liveEventFeed.removeRange(0, liveEventFeed.length - 200);
+            }
+          }
         case 'pong':
           break; // keepalive response
       }

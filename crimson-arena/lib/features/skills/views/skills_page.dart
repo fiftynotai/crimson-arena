@@ -13,7 +13,7 @@ import 'widgets/skill_card_widget.dart';
 ///
 /// Layout:
 /// ```
-/// ArenaScaffold(title: 'SKILLS', activeTabIndex: 4)
+/// ArenaScaffold(title: 'SKILLS', activeTabIndex: 6)
 ///   Column
 ///     SummaryHeader    -- total skills, total invocations
 ///     SectionHeader    -- "Skills"
@@ -30,7 +30,7 @@ class SkillsPage extends StatelessWidget {
 
     return ArenaScaffold(
       title: 'SKILLS',
-      activeTabIndex: 4,
+      activeTabIndex: 6,
       body: Obx(() {
         if (vm.isLoading.value) {
           return const Center(

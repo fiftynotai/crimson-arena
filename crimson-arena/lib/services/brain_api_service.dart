@@ -149,6 +149,50 @@ class BrainApiService extends GetxService {
         queryParams: {'days': days.toString()},
       );
 
+  /// Fetch brain events with optional filters.
+  Future<Map<String, dynamic>?> getBrainEvents({
+    String? eventName,
+    String? component,
+    String? project,
+    String? since,
+    String? until,
+    int limit = 100,
+    int offset = 0,
+  }) {
+    final params = <String, String>{
+      'limit': '$limit',
+      'offset': '$offset',
+    };
+    if (eventName != null) params['event_name'] = eventName;
+    if (component != null) params['component'] = component;
+    if (project != null) params['project'] = project;
+    if (since != null) params['since'] = since;
+    if (until != null) params['until'] = until;
+    return _getJson(ApiConstants.brainEvents, queryParams: params);
+  }
+
+  /// Fetch brain tasks with optional filters.
+  Future<Map<String, dynamic>?> getBrainTasks({
+    String? status,
+    String? taskType,
+    String? projectSlug,
+    String? assignee,
+    String? scope,
+    int limit = 50,
+    int offset = 0,
+  }) {
+    final params = <String, String>{
+      'limit': '$limit',
+      'offset': '$offset',
+    };
+    if (status != null) params['status'] = status;
+    if (taskType != null) params['task_type'] = taskType;
+    if (projectSlug != null) params['project_slug'] = projectSlug;
+    if (assignee != null) params['assignee'] = assignee;
+    if (scope != null) params['scope'] = scope;
+    return _getJson(ApiConstants.brainTasks, queryParams: params);
+  }
+
   // ---------------------------------------------------------------------------
   // Dashboard-specific
   // ---------------------------------------------------------------------------
