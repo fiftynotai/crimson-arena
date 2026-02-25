@@ -180,52 +180,59 @@ packages:
   fifty_achievement_engine:
     dependency: "direct main"
     description:
-      path: "../../../fifty_eco_system/packages/fifty_achievement_engine"
-      relative: true
-    source: path
-    version: "0.1.1"
+      name: fifty_achievement_engine
+      sha256: "363a0c0bd0e487f3b365d78b55d9c28d664bec49e5a11be6a14a3ff57dddb9d8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.3"
   fifty_cache:
     dependency: "direct main"
     description:
-      path: "../../../fifty_eco_system/packages/fifty_cache"
-      relative: true
-    source: path
+      name: fifty_cache
+      sha256: f63dba3ad80615a08ca7e0abadea2190ef7ce6f3d79252c6f0422da3b0289465
+      url: "https://pub.dev"
+    source: hosted
     version: "0.1.0"
   fifty_skill_tree:
     dependency: "direct main"
     description:
-      path: "../../../fifty_eco_system/packages/fifty_skill_tree"
-      relative: true
-    source: path
-    version: "0.1.0"
+      name: fifty_skill_tree
+      sha256: "7853da9ec7c33f37e7e95708a0a0a2b11b8b130185befb8fe44cfe8300f90ff7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   fifty_theme:
     dependency: "direct main"
     description:
-      path: "../../../fifty_eco_system/packages/fifty_theme"
-      relative: true
-    source: path
-    version: "1.0.0"
+      name: fifty_theme
+      sha256: "2083d19512390ead44c27497fe6de51143b00b0704662cbe67c49401f76da4d0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   fifty_tokens:
     dependency: "direct main"
     description:
-      path: "../../../fifty_eco_system/packages/fifty_tokens"
-      relative: true
-    source: path
-    version: "1.0.0"
+      name: fifty_tokens
+      sha256: "15859e6abd590b64864440ac683330d509650cf088c775d1dc68cc2ce938ceb2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   fifty_ui:
     dependency: "direct main"
     description:
-      path: "../../../fifty_eco_system/packages/fifty_ui"
-      relative: true
-    source: path
-    version: "0.6.0"
+      name: fifty_ui
+      sha256: "803ce3856890a846f4223c8ded468798e7d66b8316b00f7a7347ae99a730963d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.2"
   fifty_utils:
     dependency: "direct main"
     description:
-      path: "../../../fifty_eco_system/packages/fifty_utils"
-      relative: true
-    source: path
-    version: "0.1.0"
+      name: fifty_utils
+      sha256: "7b3d0f941ea7f3819800fb337a2be4d9e99671e3d34b3f21c241e52bf24d0709"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   file:
     dependency: transitive
     description:
@@ -317,10 +324,10 @@ packages:
     dependency: "direct main"
     description:
       name: google_fonts
-      sha256: ba03d03bcaa2f6cb7bd920e3b5027181db75ab524f8891c8bc3aa603885b8055
+      sha256: db9df7a5898d894eeda4c78143f35c30a243558be439518972366880b80bf88e
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.3"
+    version: "8.0.2"
   graphs:
     dependency: transitive
     description:
@@ -357,10 +364,10 @@ packages:
     dependency: transitive
     description:
       name: intl
-      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
+      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.2"
   io:
     dependency: transitive
     description:
