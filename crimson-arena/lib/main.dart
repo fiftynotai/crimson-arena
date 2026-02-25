@@ -11,6 +11,38 @@ void main() {
   // Use path URL strategy for clean URLs on web.
   usePathUrlStrategy();
 
+  // Show error details visually in release mode (instead of grey screen).
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: const Color(0xFF1A1A2E),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 48),
+            const SizedBox(height: 16),
+            SelectableText(
+              details.exceptionAsString(),
+              style: const TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontSize: 14,
+                  fontFamily: 'monospace'),
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              details.stack.toString().split('\n').take(10).join('\n'),
+              style: const TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 11,
+                  fontFamily: 'monospace'),
+            ),
+          ],
+        ),
+      ),
+    );
+  };
+
   runApp(const CrimsonArenaApp());
 }
 

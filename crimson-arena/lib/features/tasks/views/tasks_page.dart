@@ -71,9 +71,10 @@ class TasksPage extends StatelessWidget {
 
             // Agent workload bar
             Obx(() {
+              final workload = Map<String, int>.from(vm.agentWorkload);
               return Padding(
                 padding: EdgeInsets.symmetric(horizontal: hPad),
-                child: AgentWorkloadBar(workload: vm.agentWorkload),
+                child: AgentWorkloadBar(workload: workload),
               );
             }),
             const SizedBox(height: FiftySpacing.sm),
