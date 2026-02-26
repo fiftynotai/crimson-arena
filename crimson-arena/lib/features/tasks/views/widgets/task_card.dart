@@ -24,34 +24,16 @@ class TaskCard extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: FiftySpacing.xs),
+      padding: const EdgeInsets.only(bottom: FiftySpacing.sm),
       child: FiftyCard(
         scanlineOnHover: true,
         hoverScale: 1.0,
         borderRadius: FiftyRadii.lgRadius,
         showShadow: false,
         padding: EdgeInsets.zero,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Priority left border
-              Container(
-                width: 3,
-                decoration: BoxDecoration(
-                  color: ArenaColors.taskPriorityColor(task.priority),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(FiftyRadii.lg),
-                    bottomLeft: Radius.circular(FiftyRadii.lg),
-                  ),
-                ),
-              ),
-
-              // Card content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(FiftySpacing.sm),
-                  child: Column(
+        child: Padding(
+          padding: const EdgeInsets.all(FiftySpacing.sm),
+          child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title
@@ -175,12 +157,8 @@ class TaskCard extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+            );
+          }
 
   Widget _buildPriorityDots(BuildContext context, int priority) {
     final color = ArenaColors.taskPriorityColor(priority);
