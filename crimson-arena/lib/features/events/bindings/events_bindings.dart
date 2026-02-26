@@ -6,9 +6,8 @@ import '../controllers/events_view_model.dart';
 class EventsBindings implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<EventsViewModel>(
-      () => EventsViewModel(),
-      fenix: true,
-    );
+    if (!Get.isRegistered<EventsViewModel>()) {
+      Get.put<EventsViewModel>(EventsViewModel(), permanent: true);
+    }
   }
 }

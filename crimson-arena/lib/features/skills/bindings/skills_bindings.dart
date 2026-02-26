@@ -6,9 +6,8 @@ import '../controllers/skills_view_model.dart';
 class SkillsBindings implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<SkillsViewModel>(
-      () => SkillsViewModel(),
-      fenix: true,
-    );
+    if (!Get.isRegistered<SkillsViewModel>()) {
+      Get.put<SkillsViewModel>(SkillsViewModel(), permanent: true);
+    }
   }
 }

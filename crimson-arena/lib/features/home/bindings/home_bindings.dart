@@ -6,6 +6,8 @@ import '../controllers/home_view_model.dart';
 class HomeBindings implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<HomeViewModel>(() => HomeViewModel(), fenix: true);
+    if (!Get.isRegistered<HomeViewModel>()) {
+      Get.put<HomeViewModel>(HomeViewModel(), permanent: true);
+    }
   }
 }

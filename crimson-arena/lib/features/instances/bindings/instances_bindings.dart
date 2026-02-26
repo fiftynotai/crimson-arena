@@ -6,6 +6,8 @@ import '../controllers/instances_view_model.dart';
 class InstancesBindings implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<InstancesViewModel>(() => InstancesViewModel(), fenix: true);
+    if (!Get.isRegistered<InstancesViewModel>()) {
+      Get.put<InstancesViewModel>(InstancesViewModel(), permanent: true);
+    }
   }
 }

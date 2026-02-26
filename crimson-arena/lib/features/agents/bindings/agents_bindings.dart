@@ -6,6 +6,8 @@ import '../controllers/agents_view_model.dart';
 class AgentsBindings implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<AgentsViewModel>(() => AgentsViewModel(), fenix: true);
+    if (!Get.isRegistered<AgentsViewModel>()) {
+      Get.put<AgentsViewModel>(AgentsViewModel(), permanent: true);
+    }
   }
 }

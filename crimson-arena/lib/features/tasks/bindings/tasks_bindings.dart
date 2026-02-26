@@ -6,9 +6,8 @@ import '../controllers/tasks_view_model.dart';
 class TasksBindings implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<TasksViewModel>(
-      () => TasksViewModel(),
-      fenix: true,
-    );
+    if (!Get.isRegistered<TasksViewModel>()) {
+      Get.put<TasksViewModel>(TasksViewModel(), permanent: true);
+    }
   }
 }

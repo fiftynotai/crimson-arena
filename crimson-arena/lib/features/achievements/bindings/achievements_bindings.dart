@@ -6,9 +6,8 @@ import '../controllers/achievements_view_model.dart';
 class AchievementsBindings implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<AchievementsViewModel>(
-      () => AchievementsViewModel(),
-      fenix: true,
-    );
+    if (!Get.isRegistered<AchievementsViewModel>()) {
+      Get.put<AchievementsViewModel>(AchievementsViewModel(), permanent: true);
+    }
   }
 }
