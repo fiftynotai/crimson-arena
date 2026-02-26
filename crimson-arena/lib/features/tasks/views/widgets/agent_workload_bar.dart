@@ -1,13 +1,16 @@
 import 'package:crimson_arena/core/constants/arena_sizes.dart';
 import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
+import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../shared/widgets/arena_card.dart';
 
 /// Displays horizontal bars showing the number of active tasks per agent.
 ///
 /// Each bar consists of a fixed-width agent name label followed by a
-/// colored bar segment proportional to the agent's task count. The bar
-/// color uses crimson to match the dashboard theme.
+/// [FiftyProgressBar] proportional to the agent's task count. Wrapped
+/// in [ArenaCard] for consistent styling with other dashboard panels.
 class AgentWorkloadBar extends StatefulWidget {
   /// Map of agent name -> active task count.
   final Map<String, int> workload;
@@ -27,15 +30,8 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: FiftyRadii.smRadius,
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
+    return ArenaCard(
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -43,7 +39,7 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
           // Header (tap to expand/collapse)
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: FiftyRadii.smRadius,
+            borderRadius: FiftyRadii.lgRadius,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: FiftySpacing.sm,
@@ -64,8 +60,8 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
                     '(${widget.workload.length} agents)',
                     style: textTheme.labelSmall!.copyWith(
                       fontWeight: FiftyTypography.medium,
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      color: colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.5),
                     ),
                   ),
                   const Spacer(),
@@ -88,7 +84,8 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
             duration: FiftyMotion.compiling,
             curve: FiftyMotion.standard,
             alignment: Alignment.topCenter,
-            child: _isExpanded ? _buildBody(context) : const SizedBox.shrink(),
+            child:
+                _isExpanded ? _buildBody(context) : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -122,8 +119,7 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
     final sorted = widget.workload.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    final maxCount =
-        sorted.isNotEmpty ? sorted.first.value : 1;
+    final maxCount = sorted.isNotEmpty ? sorted.first.value : 1;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -157,36 +153,15 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
                 ),
                 const SizedBox(width: FiftySpacing.xs),
 
-                // Bar
+                // Progress bar
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final barWidth = constraints.maxWidth * fraction;
-
-                      return Stack(
-                        children: [
-                          // Background track
-                          Container(
-                            height: ArenaSizes.workloadBarHeight,
-                            decoration: BoxDecoration(
-                              color: colorScheme.onSurface
-                                  .withValues(alpha: 0.05),
-                              borderRadius: FiftyRadii.smRadius,
-                            ),
-                          ),
-                          // Filled bar
-                          Container(
-                            height: ArenaSizes.workloadBarHeight,
-                            width: barWidth.clamp(0.0, constraints.maxWidth),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary
-                                  .withValues(alpha: 0.7),
-                              borderRadius: FiftyRadii.smRadius,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                  child: FiftyProgressBar(
+                    value: fraction,
+                    height: ArenaSizes.workloadBarHeight,
+                    foregroundColor:
+                        colorScheme.primary.withValues(alpha: 0.7),
+                    backgroundColor:
+                        colorScheme.onSurface.withValues(alpha: 0.05),
                   ),
                 ),
                 const SizedBox(width: FiftySpacing.xs),

@@ -5,6 +5,7 @@ import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../shared/widgets/arena_hover_button.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/instances_view_model.dart';
 import 'widgets/agent_nexus_table.dart';
@@ -197,7 +198,7 @@ class _InstancesPageState extends State<InstancesPage> {
             const Spacer(),
 
             // Refresh button
-            _HoverButton(
+            ArenaHoverButton(
               onTap: vm.refreshData,
               child: Text(
                 'REFRESH',
@@ -287,51 +288,3 @@ class _InstancesPageState extends State<InstancesPage> {
   }
 }
 
-/// A button with hover feedback: background tint appears on mouse hover.
-class _HoverButton extends StatefulWidget {
-  final VoidCallback? onTap;
-  final Widget child;
-
-  const _HoverButton({this.onTap, required this.child});
-
-  @override
-  State<_HoverButton> createState() => _HoverButtonState();
-}
-
-class _HoverButtonState extends State<_HoverButton> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(
-            horizontal: FiftySpacing.sm,
-            vertical: FiftySpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: _hovered
-                ? colorScheme.onSurface.withValues(alpha: 0.08)
-                : Colors.transparent,
-            borderRadius: FiftyRadii.smRadius,
-            border: Border.all(
-              color: _hovered
-                  ? colorScheme.outline
-                  : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: widget.child,
-        ),
-      ),
-    );
-  }
-}

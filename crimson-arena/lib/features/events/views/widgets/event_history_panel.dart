@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../../core/theme/arena_text_styles.dart';
 import '../../../../data/models/brain_event_model.dart';
 import '../../../../shared/utils/format_utils.dart';
+import '../../../../shared/widgets/arena_hover_button.dart';
 import '../../controllers/events_view_model.dart';
 import 'live_event_card.dart';
 
@@ -102,7 +103,7 @@ class _EventHistoryPanelState extends State<EventHistoryPanel> {
                 const Spacer(),
 
                 // Refresh button
-                _HoverButton(
+                ArenaHoverButton(
                   onTap: vm.fetchHistory,
                   child: Text(
                     'REFRESH',
@@ -277,7 +278,7 @@ class _EventHistoryPanelState extends State<EventHistoryPanel> {
             ),
             const SizedBox(width: FiftySpacing.md),
 
-            _HoverButton(
+            ArenaHoverButton(
               onTap: hasPrev ? vm.prevPage : null,
               child: Text(
                 '< PREV',
@@ -293,7 +294,7 @@ class _EventHistoryPanelState extends State<EventHistoryPanel> {
             ),
             const SizedBox(width: FiftySpacing.sm),
 
-            _HoverButton(
+            ArenaHoverButton(
               onTap: hasNext ? vm.nextPage : null,
               child: Text(
                 'NEXT >',
@@ -508,53 +509,3 @@ class _EventHistoryRow extends StatelessWidget {
   }
 }
 
-/// A button with hover feedback.
-class _HoverButton extends StatefulWidget {
-  final VoidCallback? onTap;
-  final Widget child;
-
-  const _HoverButton({this.onTap, required this.child});
-
-  @override
-  State<_HoverButton> createState() => _HoverButtonState();
-}
-
-class _HoverButtonState extends State<_HoverButton> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return MouseRegion(
-      cursor: widget.onTap != null
-          ? SystemMouseCursors.click
-          : SystemMouseCursors.basic,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(
-            horizontal: FiftySpacing.sm,
-            vertical: FiftySpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: _hovered && widget.onTap != null
-                ? colorScheme.onSurface.withValues(alpha: 0.08)
-                : Colors.transparent,
-            borderRadius: FiftyRadii.smRadius,
-            border: Border.all(
-              color: _hovered && widget.onTap != null
-                  ? colorScheme.outline
-                  : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: widget.child,
-        ),
-      ),
-    );
-  }
-}

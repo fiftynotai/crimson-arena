@@ -2,6 +2,7 @@ import 'package:crimson_arena/core/constants/arena_colors.dart';
 import 'package:crimson_arena/core/constants/arena_sizes.dart';
 import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
+import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../data/models/task_model.dart';
@@ -9,45 +10,27 @@ import '../../../../data/models/task_model.dart';
 /// A single task card for the kanban board.
 ///
 /// Displays the task title, type badge, priority indicator, assignee,
-/// brief ID, and relative timestamp. Uses a colored left border to
-/// indicate priority level.
-class TaskCard extends StatefulWidget {
+/// brief ID, and relative timestamp. Uses [FiftyCard] for consistent
+/// hover effects and a colored left border to indicate priority level.
+class TaskCard extends StatelessWidget {
   final TaskModel task;
 
   const TaskCard({super.key, required this.task});
-
-  @override
-  State<TaskCard> createState() => _TaskCardState();
-}
-
-class _TaskCardState extends State<TaskCard> {
-  bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final task = widget.task;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: FiftyMotion.fast,
-        margin: const EdgeInsets.only(bottom: FiftySpacing.xs),
-        decoration: BoxDecoration(
-          color: _hovered
-              ? colorScheme.surfaceContainerHighest
-              : colorScheme.surfaceContainerHigh,
-          borderRadius: FiftyRadii.smRadius,
-          border: Border.all(
-            color: _hovered
-                ? colorScheme.outline
-                : colorScheme.outline.withValues(alpha: 0.5),
-            width: 1,
-          ),
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FiftySpacing.xs),
+      child: FiftyCard(
+        scanlineOnHover: true,
+        hoverScale: 1.0,
+        borderRadius: FiftyRadii.lgRadius,
+        showShadow: false,
+        padding: EdgeInsets.zero,
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -58,8 +41,8 @@ class _TaskCardState extends State<TaskCard> {
                 decoration: BoxDecoration(
                   color: ArenaColors.taskPriorityColor(task.priority),
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(FiftyRadii.sm),
-                    bottomLeft: Radius.circular(FiftyRadii.sm),
+                    topLeft: Radius.circular(FiftyRadii.lg),
+                    bottomLeft: Radius.circular(FiftyRadii.lg),
                   ),
                 ),
               ),
@@ -87,7 +70,11 @@ class _TaskCardState extends State<TaskCard> {
                       Row(
                         children: [
                           // Task type badge
-                          _buildTypeBadge(context, task.taskType),
+                          FiftyBadge(
+                            label: task.taskType.toUpperCase(),
+                            customColor: colorScheme.onSurfaceVariant,
+                            showGlow: false,
+                          ),
                           const SizedBox(width: FiftySpacing.xs),
 
                           // Priority dots
@@ -195,36 +182,6 @@ class _TaskCardState extends State<TaskCard> {
     );
   }
 
-  Widget _buildTypeBadge(BuildContext context, String taskType) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: FiftySpacing.xs,
-        vertical: ArenaSizes.badgeVerticalPadding,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
-        borderRadius: FiftyRadii.smRadius,
-        border: Border.all(
-          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: Text(
-        taskType.toUpperCase(),
-        style: textTheme.labelSmall!.copyWith(
-          fontSize: ArenaSizes.monoFontSizeMicro,
-          fontWeight: FiftyTypography.bold,
-          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-          letterSpacing: FiftyTypography.letterSpacingLabel,
-        ),
-      ),
-    );
-  }
-
   Widget _buildPriorityDots(BuildContext context, int priority) {
     final color = ArenaColors.taskPriorityColor(priority);
     const totalDots = 5;
@@ -239,7 +196,9 @@ class _TaskCardState extends State<TaskCard> {
         return Container(
           width: 4,
           height: 4,
-          margin: EdgeInsets.only(right: i < totalDots - 1 ? ArenaSizes.microGap : 0),
+          margin: EdgeInsets.only(
+            right: i < totalDots - 1 ? ArenaSizes.microGap : 0,
+          ),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: filled ? color : color.withValues(alpha: 0.2),

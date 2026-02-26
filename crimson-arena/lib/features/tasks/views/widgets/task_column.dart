@@ -1,17 +1,18 @@
 import 'package:crimson_arena/core/constants/arena_colors.dart';
 import 'package:crimson_arena/core/constants/arena_sizes.dart';
-import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
+import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../data/models/task_model.dart';
+import '../../../../shared/widgets/arena_card.dart';
 import 'task_card.dart';
 
 /// A single kanban column in the task board.
 ///
 /// Displays a status header with a count badge, followed by a scrollable
-/// list of [TaskCard] widgets. Each column has a fixed width and a
-/// status-colored accent in the header.
+/// list of [TaskCard] widgets. Wrapped in [ArenaCard] for consistent
+/// surface color, border radius, and scanline hover effect.
 class TaskColumn extends StatelessWidget {
   /// Status key used for color lookup and display.
   final String status;
@@ -39,96 +40,73 @@ class TaskColumn extends StatelessWidget {
     return Container(
       width: width,
       margin: const EdgeInsets.only(right: FiftySpacing.sm),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: FiftyRadii.mdRadius,
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Column header
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: FiftySpacing.sm,
-              vertical: FiftySpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: colorScheme.outline.withValues(alpha: 0.5),
-                  width: 1,
+      child: ArenaCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Column header
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: FiftySpacing.sm,
+                vertical: FiftySpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.5),
+                    width: 1,
+                  ),
                 ),
               ),
-            ),
-            child: Row(
-              children: [
-                // Status color dot
-                Container(
-                  width: ArenaSizes.statusDotLarge,
-                  height: ArenaSizes.statusDotLarge,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: statusColor,
-                  ),
-                ),
-                const SizedBox(width: FiftySpacing.xs),
-
-                // Status label
-                Text(
-                  status.toUpperCase(),
-                  style: textTheme.labelSmall!.copyWith(
-                    fontWeight: FiftyTypography.bold,
-                    color: colorScheme.onSurface,
-                    letterSpacing: FiftyTypography.letterSpacingLabel,
-                  ),
-                ),
-                const Spacer(),
-
-                // Count badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: FiftySpacing.xs,
-                    vertical: ArenaSizes.badgeVerticalPadding,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: FiftyRadii.smRadius,
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    '${tasks.length}',
-                    style: ArenaTextStyles.mono(
-                      context,
-                      fontSize: ArenaSizes.monoFontSizeMicro,
-                      fontWeight: FiftyTypography.bold,
+              child: Row(
+                children: [
+                  // Status color dot
+                  Container(
+                    width: ArenaSizes.statusDotLarge,
+                    height: ArenaSizes.statusDotLarge,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
                       color: statusColor,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  const SizedBox(width: FiftySpacing.xs),
 
-          // Task list or empty state
-          Expanded(
-            child: tasks.isEmpty
-                ? _buildEmptyState(context)
-                : ListView.builder(
-                    padding: const EdgeInsets.all(FiftySpacing.xs),
-                    physics: const ClampingScrollPhysics(),
-                    itemCount: tasks.length,
-                    itemBuilder: (context, index) =>
-                        TaskCard(task: tasks[index]),
+                  // Status label
+                  Text(
+                    status.toUpperCase(),
+                    style: textTheme.labelSmall!.copyWith(
+                      fontWeight: FiftyTypography.bold,
+                      color: colorScheme.onSurface,
+                      letterSpacing: FiftyTypography.letterSpacingLabel,
+                    ),
                   ),
-          ),
-        ],
+                  const Spacer(),
+
+                  // Count badge
+                  FiftyBadge(
+                    label: '${tasks.length}',
+                    customColor: statusColor,
+                    showGlow: false,
+                  ),
+                ],
+              ),
+            ),
+
+            // Task list or empty state
+            Expanded(
+              child: tasks.isEmpty
+                  ? _buildEmptyState(context)
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(FiftySpacing.xs),
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: tasks.length,
+                      itemBuilder: (context, index) =>
+                          TaskCard(task: tasks[index]),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -148,5 +126,4 @@ class TaskColumn extends StatelessWidget {
       ),
     );
   }
-
 }

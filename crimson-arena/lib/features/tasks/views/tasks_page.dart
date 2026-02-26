@@ -1,10 +1,10 @@
 import 'package:crimson_arena/core/constants/arena_breakpoints.dart';
-import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../shared/widgets/arena_hover_button.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/tasks_view_model.dart';
 import 'widgets/agent_workload_bar.dart';
@@ -153,60 +153,37 @@ class TasksPage extends StatelessWidget {
         horizontal: hPad,
         vertical: FiftySpacing.sm,
       ),
-      child: Row(
-        children: [
-          Text(
-            'TASK QUEUE',
-            style: textTheme.titleSmall!.copyWith(
-              fontWeight: FiftyTypography.extraBold,
-              color: colorScheme.onSurface,
-              letterSpacing: FiftyTypography.letterSpacingLabelMedium,
-            ),
-          ),
-          const SizedBox(width: FiftySpacing.sm),
+      child: FiftySectionHeader(
+        title: 'TASK QUEUE',
+        size: FiftySectionHeaderSize.small,
+        showDivider: false,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Total count badge
+            Obx(() {
+              return FiftyBadge(
+                label: '${vm.totalCount} tasks',
+                customColor: colorScheme.primary,
+                showGlow: false,
+              );
+            }),
+            const SizedBox(width: FiftySpacing.sm),
 
-          // Total count badge
-          Obx(() {
-            return Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: FiftySpacing.sm,
-                vertical: FiftySpacing.xs,
-              ),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.15),
-                borderRadius: FiftyRadii.smRadius,
-                border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
+            // Refresh button
+            ArenaHoverButton(
+              onTap: vm.refreshData,
               child: Text(
-                '${vm.totalCount} tasks',
-                style: ArenaTextStyles.mono(
-                  context,
-                  fontSize: FiftyTypography.labelSmall,
-                  fontWeight: FiftyTypography.semiBold,
-                  color: colorScheme.onSurface.withValues(alpha: 0.8),
+                'REFRESH',
+                style: textTheme.labelSmall!.copyWith(
+                  fontWeight: FiftyTypography.bold,
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: FiftyTypography.letterSpacingLabelMedium,
                 ),
               ),
-            );
-          }),
-
-          const Spacer(),
-
-          // Refresh button
-          _HoverButton(
-            onTap: vm.refreshData,
-            child: Text(
-              'REFRESH',
-              style: textTheme.labelSmall!.copyWith(
-                fontWeight: FiftyTypography.bold,
-                color: colorScheme.onSurfaceVariant,
-                letterSpacing: FiftyTypography.letterSpacingLabelMedium,
-              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -231,9 +208,9 @@ class TasksPage extends StatelessWidget {
               final isSelected = vm.selectedProject.value == project;
               return Padding(
                 padding: const EdgeInsets.only(right: FiftySpacing.xs),
-                child: _FilterChip(
+                child: FiftyChip(
                   label: project.toUpperCase(),
-                  isSelected: isSelected,
+                  selected: isSelected,
                   onTap: () => vm.filterByProject(
                     isSelected ? null : project,
                   ),
@@ -259,9 +236,9 @@ class TasksPage extends StatelessWidget {
               final isSelected = vm.selectedAssignee.value == assignee;
               return Padding(
                 padding: const EdgeInsets.only(right: FiftySpacing.xs),
-                child: _FilterChip(
+                child: FiftyChip(
                   label: assignee.toUpperCase(),
-                  isSelected: isSelected,
+                  selected: isSelected,
                   onTap: () => vm.filterByAssignee(
                     isSelected ? null : assignee,
                   ),
@@ -272,7 +249,7 @@ class TasksPage extends StatelessWidget {
             // Clear all filters
             if (vm.selectedProject.value != null ||
                 vm.selectedAssignee.value != null)
-              _HoverButton(
+              ArenaHoverButton(
                 onTap: vm.clearFilters,
                 child: Text(
                   'CLEAR',
@@ -315,124 +292,6 @@ class TasksPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// A selectable filter chip.
-class _FilterChip extends StatefulWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  State<_FilterChip> createState() => _FilterChipState();
-}
-
-class _FilterChipState extends State<_FilterChip> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: FiftyMotion.fast,
-          padding: const EdgeInsets.symmetric(
-            horizontal: FiftySpacing.sm,
-            vertical: FiftySpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: widget.isSelected
-                ? colorScheme.primary.withValues(alpha: 0.2)
-                : _hovered
-                    ? colorScheme.onSurface.withValues(alpha: 0.08)
-                    : Colors.transparent,
-            borderRadius: FiftyRadii.smRadius,
-            border: Border.all(
-              color: widget.isSelected
-                  ? colorScheme.primary.withValues(alpha: 0.5)
-                  : _hovered
-                      ? colorScheme.outline
-                      : colorScheme.outline.withValues(alpha: 0.5),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            widget.label,
-            style: textTheme.labelSmall!.copyWith(
-              fontWeight: widget.isSelected
-                  ? FiftyTypography.bold
-                  : FiftyTypography.medium,
-              color: widget.isSelected
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-              letterSpacing: FiftyTypography.letterSpacingLabel,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A button with hover feedback: background tint appears on mouse hover.
-class _HoverButton extends StatefulWidget {
-  final VoidCallback? onTap;
-  final Widget child;
-
-  const _HoverButton({this.onTap, required this.child});
-
-  @override
-  State<_HoverButton> createState() => _HoverButtonState();
-}
-
-class _HoverButtonState extends State<_HoverButton> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: FiftyMotion.fast,
-          padding: const EdgeInsets.symmetric(
-            horizontal: FiftySpacing.sm,
-            vertical: FiftySpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: _hovered
-                ? colorScheme.onSurface.withValues(alpha: 0.08)
-                : Colors.transparent,
-            borderRadius: FiftyRadii.smRadius,
-            border: Border.all(
-              color: _hovered ? colorScheme.outline : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: widget.child,
-        ),
       ),
     );
   }
