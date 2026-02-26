@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../data/models/brain_event_model.dart';
 import '../../../services/brain_api_service.dart';
 import '../../../services/brain_websocket_service.dart';
+import '../../../services/project_selector_service.dart';
 
 /// ViewModel for the Events page.
 ///
@@ -11,6 +12,7 @@ import '../../../services/brain_websocket_service.dart';
 class EventsViewModel extends GetxController {
   final _api = Get.find<BrainApiService>();
   final _ws = Get.find<BrainWebSocketService>();
+  final _projectSelector = Get.find<ProjectSelectorService>();
 
   // ---------------------------------------------------------------------------
   // Loading state
@@ -86,6 +88,13 @@ class EventsViewModel extends GetxController {
 
     // Re-fetch history when the backend pushes a brain_events update.
     ever<Map<String, dynamic>?>(_ws.brainEvents, (_) => fetchHistory());
+
+    // Re-fetch when the global project selector changes.
+    ever(_projectSelector.selectedProjectSlug, (_) {
+      historyOffset.value = 0;
+      fetchHistory();
+      _onLiveEventFeedUpdate(_ws.liveEventFeed);
+    });
   }
 
   Future<void> _loadInitialData() async {
@@ -105,15 +114,17 @@ class EventsViewModel extends GetxController {
         .reversed
         .toList();
 
-    // Apply component filter.
+    // Apply filters (component, search, and global project).
     final component = selectedComponent.value;
     final query = searchQuery.value.toLowerCase();
+    final projectSlug = _projectSelector.selectedProjectSlug.value;
 
     final filtered = parsed.where((e) {
       if (component != null && e.component != component) return false;
       if (query.isNotEmpty && !e.eventName.toLowerCase().contains(query)) {
         return false;
       }
+      if (projectSlug != null && e.projectSlug != projectSlug) return false;
       return true;
     }).toList();
 
@@ -134,6 +145,7 @@ class EventsViewModel extends GetxController {
     final result = await _api.getBrainEvents(
       component: selectedComponent.value,
       eventName: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+      project: _projectSelector.selectedProjectSlug.value,
       limit: historyLimit.value,
       offset: historyOffset.value,
     );
@@ -188,7 +200,9 @@ class EventsViewModel extends GetxController {
     _onLiveEventFeedUpdate(_ws.liveEventFeed);
   }
 
-  /// Clear all active filters and re-fetch.
+  /// Clear all page-level filters and re-fetch.
+  ///
+  /// Does NOT clear the global project selector (nav-level concern).
   void clearFilters() {
     selectedComponent.value = null;
     selectedProject.value = null;

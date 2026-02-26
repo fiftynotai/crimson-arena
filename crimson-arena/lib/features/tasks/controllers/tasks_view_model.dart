@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../data/models/task_model.dart';
 import '../../../services/brain_api_service.dart';
 import '../../../services/brain_websocket_service.dart';
+import '../../../services/project_selector_service.dart';
 
 /// ViewModel for the Tasks page.
 ///
@@ -12,6 +13,7 @@ import '../../../services/brain_websocket_service.dart';
 class TasksViewModel extends GetxController {
   final _api = Get.find<BrainApiService>();
   final _ws = Get.find<BrainWebSocketService>();
+  final _projectSelector = Get.find<ProjectSelectorService>();
 
   // -------------------------------------------------------------------------
   // Tasks grouped by status
@@ -94,19 +96,34 @@ class TasksViewModel extends GetxController {
     super.onInit();
     fetchTasks();
     ever(_ws.brainTasks, (_) => _parseTasks(_ws.brainTasks.value));
+
+    // Sync with global project selector: when the global project changes,
+    // update the local filter and re-fetch from server.
+    ever(_projectSelector.selectedProjectSlug, (String? slug) {
+      selectedProject.value = slug;
+      fetchTasks();
+    });
   }
 
   /// Fetch tasks from the REST API.
   Future<void> fetchTasks() async {
     isLoading.value = true;
-    final data = await _api.getBrainTasks(limit: 200);
+    final projectSlug = _projectSelector.selectedProjectSlug.value;
+    final data = await _api.getBrainTasks(
+      limit: 200,
+      projectSlug: projectSlug,
+    );
     _parseTasks(data);
     isLoading.value = false;
   }
 
   /// Refresh data (pull-to-refresh / manual refresh).
   Future<void> refreshData() async {
-    final data = await _api.getBrainTasks(limit: 200);
+    final projectSlug = _projectSelector.selectedProjectSlug.value;
+    final data = await _api.getBrainTasks(
+      limit: 200,
+      projectSlug: projectSlug,
+    );
     _parseTasks(data);
   }
 

@@ -2,14 +2,18 @@ import 'package:fifty_theme/fifty_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 import 'core/bindings/app_bindings.dart';
 import 'core/routing/app_pages.dart';
 import 'core/routing/app_routes.dart';
 
-void main() {
+Future<void> main() async {
   // Use path URL strategy for clean URLs on web.
   usePathUrlStrategy();
+
+  // Initialize GetStorage for persistent key-value storage (project selector).
+  await GetStorage.init();
 
   // Show error details visually in release mode (instead of grey screen).
   ErrorWidget.builder = (FlutterErrorDetails details) {

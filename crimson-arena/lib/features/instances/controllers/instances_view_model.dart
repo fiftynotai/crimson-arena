@@ -7,6 +7,7 @@ import '../../../data/models/instance_model.dart';
 import '../../../data/models/team_status_model.dart';
 import '../../../services/brain_api_service.dart';
 import '../../../services/brain_websocket_service.dart';
+import '../../../services/project_selector_service.dart';
 
 /// ViewModel for the Instances page.
 ///
@@ -15,8 +16,12 @@ import '../../../services/brain_websocket_service.dart';
 class InstancesViewModel extends GetxController {
   final BrainApiService _apiService = Get.find();
   final BrainWebSocketService _wsService = Get.find();
+  final ProjectSelectorService _projectSelector = Get.find();
 
-  /// Parsed instance models.
+  /// All parsed instance models (unfiltered).
+  final RxList<InstanceModel> _allInstances = <InstanceModel>[].obs;
+
+  /// Filtered instance models (respects global project selector).
   final RxList<InstanceModel> instances = <InstanceModel>[].obs;
 
   /// Currently expanded instance ID (for detail view).
@@ -44,6 +49,9 @@ class InstancesViewModel extends GetxController {
     super.onInit();
     _fetchInstances();
     _setupWebSocketListeners();
+
+    // Re-filter when the global project selector changes.
+    ever(_projectSelector.selectedProjectSlug, (_) => _applyProjectFilter());
   }
 
   Future<void> _fetchInstances() async {
@@ -57,9 +65,21 @@ class InstancesViewModel extends GetxController {
 
   void _parseInstances(Map<String, dynamic> data) {
     final raw = data['instances'] as List<dynamic>? ?? [];
-    instances.value = raw
+    _allInstances.value = raw
         .map((e) => InstanceModel.fromJson(e as Map<String, dynamic>))
         .toList();
+    _applyProjectFilter();
+  }
+
+  /// Filter instances by the global project selector.
+  void _applyProjectFilter() {
+    final slug = _projectSelector.selectedProjectSlug.value;
+    if (slug == null) {
+      instances.value = List.from(_allInstances);
+    } else {
+      instances.value =
+          _allInstances.where((i) => i.projectSlug == slug).toList();
+    }
   }
 
   Future<void> refreshData() => _fetchInstances();

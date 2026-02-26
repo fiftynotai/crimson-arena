@@ -4,6 +4,7 @@ import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../services/project_selector_service.dart';
 import '../../../shared/widgets/arena_hover_button.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/tasks_view_model.dart';
@@ -197,28 +198,34 @@ class TasksPage extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
+    // When a global project is selected, local project chips are redundant.
+    final globalProjectSelected =
+        Get.find<ProjectSelectorService>().selectedProjectSlug.value != null;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(hPad, 0, hPad, FiftySpacing.sm),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            // Project filter chips
-            ...vm.availableProjects.map((project) {
-              final isSelected = vm.selectedProject.value == project;
-              return Padding(
-                padding: const EdgeInsets.only(right: FiftySpacing.xs),
-                child: FiftyChip(
-                  label: project.toUpperCase(),
-                  selected: isSelected,
-                  onTap: () => vm.filterByProject(
-                    isSelected ? null : project,
+            // Project filter chips (hidden when global project is selected).
+            if (!globalProjectSelected)
+              ...vm.availableProjects.map((project) {
+                final isSelected = vm.selectedProject.value == project;
+                return Padding(
+                  padding: const EdgeInsets.only(right: FiftySpacing.xs),
+                  child: FiftyChip(
+                    label: project.toUpperCase(),
+                    selected: isSelected,
+                    onTap: () => vm.filterByProject(
+                      isSelected ? null : project,
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
 
-            if (vm.availableProjects.isNotEmpty &&
+            if (!globalProjectSelected &&
+                vm.availableProjects.isNotEmpty &&
                 vm.availableAssignees.isNotEmpty)
               Padding(
                 padding:
@@ -231,7 +238,7 @@ class TasksPage extends StatelessWidget {
                 ),
               ),
 
-            // Assignee filter chips
+            // Assignee filter chips (always visible).
             ...vm.availableAssignees.map((assignee) {
               final isSelected = vm.selectedAssignee.value == assignee;
               return Padding(

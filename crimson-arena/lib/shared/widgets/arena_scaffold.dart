@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../core/constants/arena_breakpoints.dart';
 import '../../core/routing/app_routes.dart';
 import '../../services/brain_websocket_service.dart';
+import 'project_selector_dropdown.dart';
 
 /// Shared scaffold for all Crimson Arena pages.
 ///
@@ -141,7 +142,27 @@ class ArenaScaffold extends StatelessWidget {
                   letterSpacing: FiftyTypography.letterSpacingLabelMedium,
                 ),
               ),
-              SizedBox(width: isNarrow ? FiftySpacing.sm : FiftySpacing.xxl),
+              SizedBox(width: isNarrow ? FiftySpacing.sm : FiftySpacing.md),
+
+              // Vertical divider between brand and project selector.
+              Container(
+                width: 1,
+                height: 24,
+                color: colorScheme.outline.withValues(alpha: 0.4),
+              ),
+              SizedBox(width: isNarrow ? FiftySpacing.sm : FiftySpacing.md),
+
+              // Global project selector dropdown.
+              ProjectSelectorDropdown(compact: isNarrow),
+              SizedBox(width: isNarrow ? FiftySpacing.sm : FiftySpacing.md),
+
+              // Vertical divider between project selector and tabs.
+              Container(
+                width: 1,
+                height: 24,
+                color: colorScheme.outline.withValues(alpha: 0.4),
+              ),
+              SizedBox(width: isNarrow ? FiftySpacing.sm : FiftySpacing.md),
 
               // Navigation tabs -- short labels on narrow screens.
               ..._tabs.asMap().entries.map((entry) => _buildTab(

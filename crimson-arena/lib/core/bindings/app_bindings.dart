@@ -4,6 +4,7 @@ import '../../services/brain_api_service.dart';
 import '../../services/brain_cache_service.dart';
 import '../../services/brain_websocket_service.dart';
 import '../../services/pricing_service.dart';
+import '../../services/project_selector_service.dart';
 
 /// Global dependency bindings for the Crimson Arena app.
 ///
@@ -23,5 +24,8 @@ class AppBindings extends Bindings {
 
     // Pricing calculator (permanent -- caches model pricing rates)
     Get.put(PricingService(), permanent: true);
+
+    // Global project selector (permanent -- persists via GetStorage)
+    Get.put(ProjectSelectorService(), permanent: true);
   }
 }

@@ -2,6 +2,7 @@ import 'package:crimson_arena/data/models/brain_event_model.dart';
 import 'package:crimson_arena/features/events/controllers/events_view_model.dart';
 import 'package:crimson_arena/services/brain_api_service.dart';
 import 'package:crimson_arena/services/brain_websocket_service.dart';
+import 'package:crimson_arena/services/project_selector_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:mocktail/mocktail.dart';
@@ -13,6 +14,10 @@ class MockBrainApiService extends GetxService
 class MockBrainWebSocketService extends GetxService
     with Mock
     implements BrainWebSocketService {}
+
+class MockProjectSelectorService extends GetxService
+    with Mock
+    implements ProjectSelectorService {}
 
 void main() {
   late EventsViewModel vm;
@@ -28,6 +33,11 @@ void main() {
     // Stub the reactive observables on the mock WS service.
     when(() => mockWs.liveEventFeed).thenReturn(<Map<String, dynamic>>[].obs);
     when(() => mockWs.brainEvents).thenReturn(Rx<Map<String, dynamic>?>(null));
+
+    final mockProjectSelector = MockProjectSelectorService();
+    when(() => mockProjectSelector.selectedProjectSlug)
+        .thenReturn(Rxn<String>());
+    Get.put<ProjectSelectorService>(mockProjectSelector);
 
     // Stub the API call to return an empty result by default.
     when(() => mockApi.getBrainEvents(

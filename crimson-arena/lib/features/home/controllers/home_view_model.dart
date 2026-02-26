@@ -9,6 +9,7 @@ import '../../../data/models/instance_model.dart';
 import '../../../data/models/task_model.dart';
 import '../../../services/brain_api_service.dart';
 import '../../../services/brain_websocket_service.dart';
+import '../../../services/project_selector_service.dart';
 
 /// ViewModel for the Home page.
 ///
@@ -21,6 +22,7 @@ import '../../../services/brain_websocket_service.dart';
 class HomeViewModel extends GetxController {
   final BrainApiService _apiService = Get.find();
   final BrainWebSocketService _wsService = Get.find();
+  final ProjectSelectorService _projectSelector = Get.find();
 
   // ---------------------------------------------------------------------------
   // Loading state
@@ -80,6 +82,9 @@ class HomeViewModel extends GetxController {
     _fetchInitialData();
     _setupWebSocketListeners();
     _setupPollingTimers();
+
+    // Re-fetch data when the global project selector changes.
+    ever(_projectSelector.selectedProjectSlug, (_) => refreshData());
   }
 
   @override
@@ -124,14 +129,22 @@ class HomeViewModel extends GetxController {
   }
 
   Future<void> _fetchRecentTasks() async {
-    final data = await _apiService.getBrainTasks(limit: 10);
+    final projectSlug = _projectSelector.selectedProjectSlug.value;
+    final data = await _apiService.getBrainTasks(
+      limit: 10,
+      projectSlug: projectSlug,
+    );
     if (data != null) {
       _parseRecentTasks(data);
     }
   }
 
   Future<void> _fetchRecentEvents() async {
-    final data = await _apiService.getBrainEvents(limit: 10);
+    final project = _projectSelector.selectedProjectSlug.value;
+    final data = await _apiService.getBrainEvents(
+      limit: 10,
+      project: project,
+    );
     if (data != null) {
       _parseRecentEvents(data);
     }
@@ -163,9 +176,17 @@ class HomeViewModel extends GetxController {
 
   void _parseInstances(Map<String, dynamic> data) {
     final raw = data['instances'] as List<dynamic>? ?? [];
-    instances.value = raw
+    var parsed = raw
         .map((e) => InstanceModel.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    // Client-side project filter (instances API does not support server-side).
+    final projectSlug = _projectSelector.selectedProjectSlug.value;
+    if (projectSlug != null) {
+      parsed = parsed.where((i) => i.projectSlug == projectSlug).toList();
+    }
+
+    instances.value = parsed;
   }
 
   void _parseRecentTasks(Map<String, dynamic> data) {
@@ -195,9 +216,15 @@ class HomeViewModel extends GetxController {
     } else {
       return;
     }
+
+    final projectSlug = _projectSelector.selectedProjectSlug.value;
+
     for (final item in briefsList) {
       if (item is Map<String, dynamic>) {
-        brainBriefs.add(BriefModel.fromJson(item));
+        final brief = BriefModel.fromJson(item);
+        // Client-side project filter for briefs.
+        if (projectSlug != null && brief.project != projectSlug) continue;
+        brainBriefs.add(brief);
       }
     }
   }
