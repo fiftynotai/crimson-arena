@@ -1,3 +1,5 @@
+import 'package:crimson_arena/core/constants/arena_colors.dart';
+import 'package:crimson_arena/core/constants/arena_sizes.dart';
 import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +34,7 @@ class _TaskCardState extends State<TaskCard> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: FiftyMotion.fast,
         margin: const EdgeInsets.only(bottom: FiftySpacing.xs),
         decoration: BoxDecoration(
           color: _hovered
@@ -54,7 +56,7 @@ class _TaskCardState extends State<TaskCard> {
               Container(
                 width: 3,
                 decoration: BoxDecoration(
-                  color: _priorityColor(task.priority),
+                  color: ArenaColors.taskPriorityColor(task.priority),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(FiftyRadii.sm),
                     bottomLeft: Radius.circular(FiftyRadii.sm),
@@ -100,7 +102,7 @@ class _TaskCardState extends State<TaskCard> {
                               task.projectSlug!.toUpperCase(),
                               style: ArenaTextStyles.mono(
                                 context,
-                                fontSize: FiftyTypography.labelSmall - 1,
+                                fontSize: ArenaSizes.monoFontSizeMicro,
                                 fontWeight: FiftyTypography.medium,
                                 color: colorScheme.primary.withValues(
                                   alpha: 0.7,
@@ -123,7 +125,7 @@ class _TaskCardState extends State<TaskCard> {
                               color: colorScheme.onSurfaceVariant
                                   .withValues(alpha: 0.6),
                             ),
-                            const SizedBox(width: 2),
+                            const SizedBox(width: ArenaSizes.microGap),
                             Text(
                               task.assignee!,
                               style: textTheme.labelSmall!.copyWith(
@@ -141,7 +143,7 @@ class _TaskCardState extends State<TaskCard> {
                               task.briefId!,
                               style: ArenaTextStyles.mono(
                                 context,
-                                fontSize: FiftyTypography.labelSmall - 1,
+                                fontSize: ArenaSizes.monoFontSizeMicro,
                                 fontWeight: FiftyTypography.semiBold,
                                 color: colorScheme.onSurfaceVariant
                                     .withValues(alpha: 0.7),
@@ -157,7 +159,7 @@ class _TaskCardState extends State<TaskCard> {
                             _relativeTime(task.updatedAt),
                             style: ArenaTextStyles.mono(
                               context,
-                              fontSize: FiftyTypography.labelSmall - 1,
+                              fontSize: ArenaSizes.monoFontSizeMicro,
                               fontWeight: FiftyTypography.medium,
                               color: colorScheme.onSurfaceVariant
                                   .withValues(alpha: 0.5),
@@ -174,7 +176,7 @@ class _TaskCardState extends State<TaskCard> {
                           task.failReason!,
                           style: textTheme.labelSmall!.copyWith(
                             fontWeight: FiftyTypography.medium,
-                            color: const Color(0xFFEF4444).withValues(
+                            color: ArenaColors.taskFailed.withValues(
                               alpha: 0.8,
                             ),
                           ),
@@ -201,7 +203,7 @@ class _TaskCardState extends State<TaskCard> {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: FiftySpacing.xs,
-        vertical: 1,
+        vertical: ArenaSizes.badgeVerticalPadding,
       ),
       decoration: BoxDecoration(
         color: colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
@@ -214,7 +216,7 @@ class _TaskCardState extends State<TaskCard> {
       child: Text(
         taskType.toUpperCase(),
         style: textTheme.labelSmall!.copyWith(
-          fontSize: 9,
+          fontSize: ArenaSizes.monoFontSizeMicro,
           fontWeight: FiftyTypography.bold,
           color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
           letterSpacing: FiftyTypography.letterSpacingLabel,
@@ -224,7 +226,7 @@ class _TaskCardState extends State<TaskCard> {
   }
 
   Widget _buildPriorityDots(BuildContext context, int priority) {
-    final color = _priorityColor(priority);
+    final color = ArenaColors.taskPriorityColor(priority);
     const totalDots = 5;
     // Priority 1 = most urgent = 5 filled dots
     // Priority 5 = least urgent = 1 filled dot
@@ -237,7 +239,7 @@ class _TaskCardState extends State<TaskCard> {
         return Container(
           width: 4,
           height: 4,
-          margin: EdgeInsets.only(right: i < totalDots - 1 ? 2 : 0),
+          margin: EdgeInsets.only(right: i < totalDots - 1 ? ArenaSizes.microGap : 0),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: filled ? color : color.withValues(alpha: 0.2),
@@ -245,22 +247,6 @@ class _TaskCardState extends State<TaskCard> {
         );
       }),
     );
-  }
-
-  /// Map priority number to color.
-  Color _priorityColor(int priority) {
-    switch (priority) {
-      case 1:
-        return const Color(0xFFEF4444); // red
-      case 2:
-        return const Color(0xFFF97316); // orange
-      case 3:
-        return const Color(0xFFFBBF24); // yellow
-      case 4:
-        return const Color(0xFF3B82F6); // blue
-      default:
-        return const Color(0xFF94A3B8); // gray
-    }
   }
 
   /// Convert ISO timestamp to relative time string.

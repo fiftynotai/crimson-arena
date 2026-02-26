@@ -198,4 +198,39 @@ class ArenaSizes {
 
   /// Width of the legend token value column.
   static const double breakdownLegendValueWidth = 56;
+
+  // ---------------------------------------------------------------------------
+  // Task kanban
+  // ---------------------------------------------------------------------------
+
+  /// Micro gap for sub-token spacing (2px) -- priority dots, icon-label gaps.
+  static const double microGap = 2;
+
+  /// Vertical padding for compact badges (1px).
+  static const double badgeVerticalPadding = 1;
+
+  /// Font size for micro monospaced text (9px) -- replaces labelSmall - 1 arithmetic.
+  static const double monoFontSizeMicro = 9;
+
+  /// Fixed width of the agent name column in the workload bar.
+  static const double workloadAgentNameWidth = 100;
+
+  /// Height of workload bar tracks.
+  static const double workloadBarHeight = 14;
+
+  /// Width of the workload count label column.
+  static const double workloadCountWidth = 24;
+
+  // ---------------------------------------------------------------------------
+  // Heartbeat pulse
+  // ---------------------------------------------------------------------------
+
+  /// Duration of one heartbeat pulse cycle.
+  static const Duration heartbeatDuration = Duration(milliseconds: 1500);
+
+  /// Blur radius of the heartbeat dot glow.
+  static const double heartbeatBlurRadius = 6;
+
+  /// Spread radius of the heartbeat dot glow.
+  static const double heartbeatSpreadRadius = 1;
 }

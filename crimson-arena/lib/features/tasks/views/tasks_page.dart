@@ -352,7 +352,7 @@ class _FilterChipState extends State<_FilterChip> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: FiftyMotion.fast,
           padding: const EdgeInsets.symmetric(
             horizontal: FiftySpacing.sm,
             vertical: FiftySpacing.xs,
@@ -416,7 +416,7 @@ class _HoverButtonState extends State<_HoverButton> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: FiftyMotion.fast,
           padding: const EdgeInsets.symmetric(
             horizontal: FiftySpacing.sm,
             vertical: FiftySpacing.xs,

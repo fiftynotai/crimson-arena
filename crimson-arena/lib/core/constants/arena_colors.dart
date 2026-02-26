@@ -102,4 +102,70 @@ class ArenaColors {
     'autocompact_buffer': breakdownAutocompact,
     'free_space': breakdownFreeSpace,
   };
+
+  // ---------------------------------------------------------------------------
+  // Task status colors (kanban columns)
+  // ---------------------------------------------------------------------------
+
+  /// Pending task -- neutral gray.
+  static const Color taskPending = Color(0xFF94A3B8);
+
+  /// Active task -- crimson (matches colorScheme.primary).
+  static const Color taskActive = Color(0xFF960E29);
+
+  /// Blocked task -- amber warning.
+  static const Color taskBlocked = Color(0xFFFBBF24);
+
+  /// Done task -- success green.
+  static const Color taskDone = Color(0xFF4ADE80);
+
+  /// Cancelled task -- muted gray.
+  static const Color taskCancelled = Color(0xFF64748B);
+
+  /// Failed task -- error red.
+  static const Color taskFailed = Color(0xFFEF4444);
+
+  /// Lookup map from status string to color.
+  static const Map<String, Color> taskStatusColorMap = {
+    'pending': taskPending,
+    'active': taskActive,
+    'blocked': taskBlocked,
+    'done': taskDone,
+    'cancelled': taskCancelled,
+    'failed': taskFailed,
+  };
+
+  /// Returns the color for a given task status string.
+  static Color taskStatusColor(String status) =>
+      taskStatusColorMap[status] ?? taskPending;
+
+  // ---------------------------------------------------------------------------
+  // Task priority colors (1-5 scale)
+  // ---------------------------------------------------------------------------
+
+  /// Priority 1 (critical) -- red.
+  static const Color priorityCritical = Color(0xFFEF4444);
+
+  /// Priority 2 (high) -- orange.
+  static const Color priorityHigh = Color(0xFFF97316);
+
+  /// Priority 3 (medium) -- amber.
+  static const Color priorityMedium = Color(0xFFFBBF24);
+
+  /// Priority 4 (low) -- blue.
+  static const Color priorityLow = Color(0xFF3B82F6);
+
+  /// Priority 5 (trivial) -- gray.
+  static const Color priorityTrivial = Color(0xFF94A3B8);
+
+  /// Returns the color for a given task priority number.
+  static Color taskPriorityColor(int priority) {
+    switch (priority) {
+      case 1: return priorityCritical;
+      case 2: return priorityHigh;
+      case 3: return priorityMedium;
+      case 4: return priorityLow;
+      default: return priorityTrivial;
+    }
+  }
 }

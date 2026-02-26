@@ -1,3 +1,5 @@
+import 'package:crimson_arena/core/constants/arena_colors.dart';
+import 'package:crimson_arena/core/constants/arena_sizes.dart';
 import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +34,7 @@ class TaskColumn extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final statusColor = _statusColor(status);
+    final statusColor = ArenaColors.taskStatusColor(status);
 
     return Container(
       width: width,
@@ -66,8 +68,8 @@ class TaskColumn extends StatelessWidget {
               children: [
                 // Status color dot
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: ArenaSizes.statusDotLarge,
+                  height: ArenaSizes.statusDotLarge,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: statusColor,
@@ -90,7 +92,7 @@ class TaskColumn extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: FiftySpacing.xs,
-                    vertical: 1,
+                    vertical: ArenaSizes.badgeVerticalPadding,
                   ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.15),
@@ -104,7 +106,7 @@ class TaskColumn extends StatelessWidget {
                     '${tasks.length}',
                     style: ArenaTextStyles.mono(
                       context,
-                      fontSize: FiftyTypography.labelSmall - 1,
+                      fontSize: ArenaSizes.monoFontSizeMicro,
                       fontWeight: FiftyTypography.bold,
                       color: statusColor,
                     ),
@@ -147,23 +149,4 @@ class TaskColumn extends StatelessWidget {
     );
   }
 
-  /// Map status string to its accent color.
-  static Color _statusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return const Color(0xFF94A3B8);
-      case 'active':
-        return const Color(0xFF960E29);
-      case 'blocked':
-        return const Color(0xFFFBBF24);
-      case 'done':
-        return const Color(0xFF4ADE80);
-      case 'cancelled':
-        return const Color(0xFF64748B);
-      case 'failed':
-        return const Color(0xFFEF4444);
-      default:
-        return const Color(0xFF94A3B8);
-    }
-  }
 }

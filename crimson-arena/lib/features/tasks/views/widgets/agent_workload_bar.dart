@@ -1,3 +1,4 @@
+import 'package:crimson_arena/core/constants/arena_sizes.dart';
 import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:flutter/material.dart';
@@ -141,12 +142,12 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
               children: [
                 // Agent name (fixed width)
                 SizedBox(
-                  width: 100,
+                  width: ArenaSizes.workloadAgentNameWidth,
                   child: Text(
                     entry.key.toUpperCase(),
                     style: ArenaTextStyles.mono(
                       context,
-                      fontSize: FiftyTypography.labelSmall - 1,
+                      fontSize: ArenaSizes.monoFontSizeMicro,
                       fontWeight: FiftyTypography.semiBold,
                       color: colorScheme.onSurface,
                     ),
@@ -166,7 +167,7 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
                         children: [
                           // Background track
                           Container(
-                            height: 14,
+                            height: ArenaSizes.workloadBarHeight,
                             decoration: BoxDecoration(
                               color: colorScheme.onSurface
                                   .withValues(alpha: 0.05),
@@ -175,10 +176,10 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
                           ),
                           // Filled bar
                           Container(
-                            height: 14,
+                            height: ArenaSizes.workloadBarHeight,
                             width: barWidth.clamp(0.0, constraints.maxWidth),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF960E29)
+                              color: colorScheme.primary
                                   .withValues(alpha: 0.7),
                               borderRadius: FiftyRadii.smRadius,
                             ),
@@ -192,12 +193,12 @@ class _AgentWorkloadBarState extends State<AgentWorkloadBar> {
 
                 // Count label
                 SizedBox(
-                  width: 24,
+                  width: ArenaSizes.workloadCountWidth,
                   child: Text(
                     '${entry.value}',
                     style: ArenaTextStyles.mono(
                       context,
-                      fontSize: FiftyTypography.labelSmall - 1,
+                      fontSize: ArenaSizes.monoFontSizeMicro,
                       fontWeight: FiftyTypography.bold,
                       color: colorScheme.onSurface,
                     ),

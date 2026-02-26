@@ -1,3 +1,4 @@
+import 'package:crimson_arena/core/constants/arena_sizes.dart';
 import 'package:flutter/material.dart';
 
 /// An animated pulsing dot indicating live status.
@@ -41,10 +42,11 @@ class _HeartbeatPulseState extends State<HeartbeatPulse>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: ArenaSizes.heartbeatDuration,
     );
 
     _opacityAnimation = Tween<double>(begin: 0.6, end: 0.0).animate(
+      // Organic heartbeat -- intentionally not FiftyMotion (UI curves)
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
@@ -122,8 +124,8 @@ class _HeartbeatPulseState extends State<HeartbeatPulse>
                     ? [
                         BoxShadow(
                           color: widget.color.withValues(alpha: 0.5),
-                          blurRadius: 6,
-                          spreadRadius: 1,
+                          blurRadius: ArenaSizes.heartbeatBlurRadius,
+                          spreadRadius: ArenaSizes.heartbeatSpreadRadius,
                         ),
                       ]
                     : null,
