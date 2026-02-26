@@ -287,6 +287,12 @@ class HomeViewModel extends GetxController {
       _fetchRecentTasks(),
       _fetchRecentEvents(),
     ]);
+
+    // Re-filter briefs from cached WebSocket data.
+    final briefsData = _wsService.brainBriefs.value;
+    if (briefsData != null) {
+      _parseBriefs(briefsData);
+    }
   }
 
   /// Brief status counts for display.

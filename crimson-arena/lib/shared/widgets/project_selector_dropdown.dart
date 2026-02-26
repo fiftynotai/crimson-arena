@@ -24,13 +24,17 @@ class ProjectSelectorDropdown extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
+    // Sentinel value for "All Projects" because PopupMenuButton treats
+    // null as "dismissed without selection" and skips onSelected.
+    const allProjectsSentinel = '__ALL__';
+
     return Obx(() {
       final selected = service.selectedProject;
       final label = compact
           ? (selected?.slug.toUpperCase() ?? 'ALL')
           : (selected?.name.toUpperCase() ?? 'ALL PROJECTS');
 
-      return PopupMenuButton<String?>(
+      return PopupMenuButton<String>(
         tooltip: 'Select project',
         offset: const Offset(0, 40),
         color: colorScheme.surfaceContainerHighest,
@@ -38,8 +42,11 @@ class ProjectSelectorDropdown extends StatelessWidget {
           borderRadius: FiftyRadii.smRadius,
           side: BorderSide(color: colorScheme.outline, width: 1),
         ),
-        onSelected: service.selectProject,
-        itemBuilder: (_) => _buildMenuItems(context, service),
+        onSelected: (value) => service.selectProject(
+          value == allProjectsSentinel ? null : value,
+        ),
+        itemBuilder: (_) =>
+            _buildMenuItems(context, service, allProjectsSentinel),
         child: Container(
           height: 32,
           padding: EdgeInsets.symmetric(
@@ -89,21 +96,22 @@ class ProjectSelectorDropdown extends StatelessWidget {
     });
   }
 
-  List<PopupMenuEntry<String?>> _buildMenuItems(
+  List<PopupMenuEntry<String>> _buildMenuItems(
     BuildContext context,
     ProjectSelectorService service,
+    String allProjectsSentinel,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final currentSlug = service.selectedProjectSlug.value;
 
-    final items = <PopupMenuEntry<String?>>[];
+    final items = <PopupMenuEntry<String>>[];
 
     // "ALL PROJECTS" option
     items.add(
-      PopupMenuItem<String?>(
-        value: null,
+      PopupMenuItem<String>(
+        value: allProjectsSentinel,
         child: Row(
           children: [
             Icon(
@@ -139,7 +147,7 @@ class ProjectSelectorDropdown extends StatelessWidget {
     for (final project in service.projects) {
       final isSelected = currentSlug == project.slug;
       items.add(
-        PopupMenuItem<String?>(
+        PopupMenuItem<String>(
           value: project.slug,
           child: Row(
             children: [
