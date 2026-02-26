@@ -154,6 +154,7 @@ class BrainApiService extends GetxService {
     String? eventName,
     String? component,
     String? project,
+    String? instanceId,
     String? since,
     String? until,
     int limit = 100,
@@ -166,6 +167,7 @@ class BrainApiService extends GetxService {
     if (eventName != null) params['event_name'] = eventName;
     if (component != null) params['component'] = component;
     if (project != null) params['project'] = project;
+    if (instanceId != null) params['instance_id'] = instanceId;
     if (since != null) params['since'] = since;
     if (until != null) params['until'] = until;
     return _getJson(ApiConstants.brainEvents, queryParams: params);

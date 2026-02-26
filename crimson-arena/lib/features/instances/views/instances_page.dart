@@ -5,6 +5,7 @@ import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../data/models/instance_model.dart';
 import '../../../shared/widgets/arena_hover_button.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/instances_view_model.dart';
@@ -229,6 +230,10 @@ class _InstancesPageState extends State<InstancesPage> {
         children: [
           const SizedBox(height: FiftySpacing.sm),
 
+          // Drill-down actions
+          _buildDrillDownActions(context, instance),
+          const SizedBox(height: FiftySpacing.sm),
+
           // Hunt pipeline
           HuntPipelineWidget(instance: instance),
           const SizedBox(height: FiftySpacing.sm),
@@ -255,6 +260,65 @@ class _InstancesPageState extends State<InstancesPage> {
         ],
       );
     });
+  }
+
+  Widget _buildDrillDownActions(
+    BuildContext context,
+    InstanceModel instance,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return Row(
+      children: [
+        ArenaHoverButton(
+          onTap: () => Get.offNamed(
+            '/events?instance=${Uri.encodeComponent(instance.id)}'
+            '&hostname=${Uri.encodeComponent(instance.machineHostname)}'
+            '&project=${Uri.encodeComponent(instance.projectSlug)}',
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.bolt, size: 14, color: colorScheme.primary),
+              const SizedBox(width: FiftySpacing.xs),
+              Text(
+                'EVENTS',
+                style: textTheme.labelSmall!.copyWith(
+                  fontWeight: FiftyTypography.bold,
+                  color: colorScheme.primary,
+                  letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: FiftySpacing.md),
+        ArenaHoverButton(
+          onTap: () => Get.offNamed(
+            '/tasks?instance=${Uri.encodeComponent(instance.id)}'
+            '&hostname=${Uri.encodeComponent(instance.machineHostname)}'
+            '&project=${Uri.encodeComponent(instance.projectSlug)}',
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.assignment, size: 14, color: colorScheme.primary),
+              const SizedBox(width: FiftySpacing.xs),
+              Text(
+                'TASKS',
+                style: textTheme.labelSmall!.copyWith(
+                  fontWeight: FiftyTypography.bold,
+                  color: colorScheme.primary,
+                  letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildEmptyState(BuildContext context) {

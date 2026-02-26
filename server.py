@@ -1911,6 +1911,7 @@ async def brain_events(
     event_name: str = Query(default=None),
     component: str = Query(default=None),
     project: str = Query(default=None),
+    instance_id: str = Query(default=None),
     since: str = Query(default=None),
     until: str = Query(default=None),
     limit: int = Query(default=100, ge=1, le=1000),
@@ -1924,6 +1925,8 @@ async def brain_events(
         params["component"] = component
     if project is not None:
         params["project"] = project
+    if instance_id is not None:
+        params["instance_id"] = instance_id
     if since is not None:
         params["since"] = since
     if until is not None:

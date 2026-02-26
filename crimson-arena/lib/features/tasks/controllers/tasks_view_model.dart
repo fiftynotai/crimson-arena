@@ -54,6 +54,10 @@ class TasksViewModel extends GetxController {
   /// Selected assignee filter (null = all assignees).
   final selectedAssignee = Rxn<String>();
 
+  /// Instance context for display when drilled from Instances page.
+  final instanceContextId = Rxn<String>();
+  final instanceContextHostname = Rxn<String>();
+
   // -------------------------------------------------------------------------
   // Loading state
   // -------------------------------------------------------------------------
@@ -246,6 +250,33 @@ class TasksViewModel extends GetxController {
   }
 
   // -------------------------------------------------------------------------
+  // Instance context (drill-down from Instances page)
+  // -------------------------------------------------------------------------
+
+  /// Set instance context for display and optionally filter by project.
+  void setInstanceContext(
+    String? instanceId, {
+    String? hostname,
+    String? projectSlug,
+  }) {
+    instanceContextId.value = instanceId;
+    instanceContextHostname.value = hostname;
+    if (projectSlug != null) {
+      selectedProject.value = projectSlug;
+      fetchTasks();
+    }
+  }
+
+  /// Clear instance context display metadata.
+  void clearInstanceContext() {
+    instanceContextId.value = null;
+    instanceContextHostname.value = null;
+  }
+
+  /// Whether an instance context is active.
+  bool get hasInstanceContext => instanceContextId.value != null;
+
+  // -------------------------------------------------------------------------
   // Filter actions
   // -------------------------------------------------------------------------
 
@@ -267,6 +298,7 @@ class TasksViewModel extends GetxController {
   void clearFilters() {
     selectedProject.value = null;
     selectedAssignee.value = null;
+    clearInstanceContext();
     _parseTasks(_ws.brainTasks.value);
   }
 }

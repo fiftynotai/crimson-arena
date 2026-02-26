@@ -1,4 +1,5 @@
 import 'package:crimson_arena/core/constants/arena_breakpoints.dart';
+import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +16,36 @@ import 'widgets/task_column.dart';
 ///
 /// Displays tasks grouped by status (pending, active, blocked, done,
 /// cancelled, failed) in horizontally scrollable columns. Includes
-/// filter chips, an agent workload bar, and a refresh button.
-class TasksPage extends StatelessWidget {
+/// filter chips, an agent workload bar, a refresh button, and an
+/// optional instance context banner when drilled from the Instances page.
+class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
+
+  @override
+  State<TasksPage> createState() => _TasksPageState();
+}
+
+class _TasksPageState extends State<TasksPage> {
+  @override
+  void initState() {
+    super.initState();
+    _handleDeepLink();
+  }
+
+  void _handleDeepLink() {
+    final params = Get.parameters;
+    final instanceId = params['instance'];
+    final vm = Get.find<TasksViewModel>();
+    if (instanceId != null && instanceId.isNotEmpty) {
+      vm.setInstanceContext(
+        instanceId,
+        hostname: params['hostname'],
+        projectSlug: params['project'],
+      );
+    } else {
+      if (vm.hasInstanceContext) vm.clearInstanceContext();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +83,17 @@ class TasksPage extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Instance context banner
+            Obx(() {
+              if (!vm.hasInstanceContext) return const SizedBox.shrink();
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: hPad,
+                ).copyWith(top: FiftySpacing.sm),
+                child: _buildInstanceBanner(context, vm),
+              );
+            }),
+
             // Header row
             _buildHeader(context, vm, hPad),
 
@@ -137,6 +176,94 @@ class TasksPage extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildInstanceBanner(BuildContext context, TasksViewModel vm) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final hostname = vm.instanceContextHostname.value;
+    final project = vm.selectedProject.value;
+    final instanceId = vm.instanceContextId.value ?? '';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: FiftySpacing.md,
+        vertical: FiftySpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withValues(alpha: 0.1),
+        borderRadius: FiftyRadii.mdRadius,
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.filter_alt,
+            size: 14,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: FiftySpacing.sm),
+          Text(
+            'VIEWING TASKS FOR INSTANCE:',
+            style: textTheme.labelSmall!.copyWith(
+              fontWeight: FiftyTypography.bold,
+              color: colorScheme.primary,
+              letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+            ),
+          ),
+          const SizedBox(width: FiftySpacing.xs),
+          Text(
+            hostname ??
+                instanceId.substring(0, instanceId.length.clamp(0, 8)),
+            style: ArenaTextStyles.mono(
+              context,
+              fontSize: FiftyTypography.labelSmall,
+              fontWeight: FiftyTypography.semiBold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          if (project != null) ...[
+            const SizedBox(width: FiftySpacing.xs),
+            Text(
+              '(PROJECT:',
+              style: textTheme.labelSmall!.copyWith(
+                fontWeight: FiftyTypography.medium,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+              ),
+            ),
+            const SizedBox(width: FiftySpacing.xs / 2),
+            Text(
+              '${project.toUpperCase()})',
+              style: ArenaTextStyles.mono(
+                context,
+                fontSize: FiftyTypography.labelSmall,
+                fontWeight: FiftyTypography.semiBold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ],
+          const Spacer(),
+          ArenaHoverButton(
+            onTap: () {
+              vm.clearInstanceContext();
+              // Also clear the project filter set by the drill-down.
+              vm.filterByProject(null);
+            },
+            child: Icon(
+              Icons.close,
+              size: 14,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

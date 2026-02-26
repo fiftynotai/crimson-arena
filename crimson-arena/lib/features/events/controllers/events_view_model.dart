@@ -63,6 +63,13 @@ class EventsViewModel extends GetxController {
   /// Free-text search query (filters by event name).
   final searchQuery = ''.obs;
 
+  /// Instance ID filter for drill-down from Instances page (null = all).
+  final selectedInstanceId = Rxn<String>();
+
+  /// Display metadata for the instance context banner.
+  final instanceHostname = Rxn<String>();
+  final instanceProject = Rxn<String>();
+
   /// Available component names for filter chips.
   final components = <String>[
     'schedules',
@@ -114,10 +121,11 @@ class EventsViewModel extends GetxController {
         .reversed
         .toList();
 
-    // Apply filters (component, search, and global project).
+    // Apply filters (component, search, global project, and instance).
     final component = selectedComponent.value;
     final query = searchQuery.value.toLowerCase();
     final projectSlug = _projectSelector.selectedProjectSlug.value;
+    final instanceId = selectedInstanceId.value;
 
     final filtered = parsed.where((e) {
       if (component != null && e.component != component) return false;
@@ -125,6 +133,7 @@ class EventsViewModel extends GetxController {
         return false;
       }
       if (projectSlug != null && e.projectSlug != projectSlug) return false;
+      if (instanceId != null && e.instanceId != instanceId) return false;
       return true;
     }).toList();
 
@@ -146,6 +155,7 @@ class EventsViewModel extends GetxController {
       component: selectedComponent.value,
       eventName: searchQuery.value.isNotEmpty ? searchQuery.value : null,
       project: _projectSelector.selectedProjectSlug.value,
+      instanceId: selectedInstanceId.value,
       limit: historyLimit.value,
       offset: historyOffset.value,
     );
@@ -200,12 +210,32 @@ class EventsViewModel extends GetxController {
     _onLiveEventFeedUpdate(_ws.liveEventFeed);
   }
 
+  /// Set or clear the instance filter.
+  void setInstanceFilter(
+    String? instanceId, {
+    String? hostname,
+    String? project,
+  }) {
+    selectedInstanceId.value = instanceId;
+    instanceHostname.value = hostname;
+    instanceProject.value = project;
+    historyOffset.value = 0;
+    fetchHistory();
+    _onLiveEventFeedUpdate(_ws.liveEventFeed);
+  }
+
+  /// Whether an instance filter is active.
+  bool get hasInstanceFilter => selectedInstanceId.value != null;
+
   /// Clear all page-level filters and re-fetch.
   ///
   /// Does NOT clear the global project selector (nav-level concern).
   void clearFilters() {
     selectedComponent.value = null;
     selectedProject.value = null;
+    selectedInstanceId.value = null;
+    instanceHostname.value = null;
+    instanceProject.value = null;
     searchQuery.value = '';
     historyOffset.value = 0;
     fetchHistory();

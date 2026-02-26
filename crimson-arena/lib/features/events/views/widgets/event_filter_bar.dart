@@ -138,10 +138,25 @@ class _EventFilterBarState extends State<EventFilterBar> {
             ),
           ),
 
+          // Instance chip (when instance filter is active)
+          Obx(() {
+            if (_vm.selectedInstanceId.value == null) {
+              return const SizedBox.shrink();
+            }
+            return _FilterChip(
+              label:
+                  'INSTANCE: ${_vm.instanceHostname.value ?? _vm.selectedInstanceId.value!.substring(0, _vm.selectedInstanceId.value!.length.clamp(0, 8))}',
+              color: colorScheme.tertiary,
+              isSelected: true,
+              onTap: () => _vm.setInstanceFilter(null),
+            );
+          }),
+
           // Clear all button
           Obx(() {
             final hasFilter = _vm.selectedComponent.value != null ||
-                _vm.searchQuery.value.isNotEmpty;
+                _vm.searchQuery.value.isNotEmpty ||
+                _vm.selectedInstanceId.value != null;
 
             if (!hasFilter) return const SizedBox.shrink();
 
