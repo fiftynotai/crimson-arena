@@ -111,6 +111,31 @@ class HomePage extends StatelessWidget {
                             ),
                       ),
                     ),
+                    const SizedBox(height: FiftySpacing.sm),
+
+                    // Quick link to Operations page
+                    ArenaCard(
+                      title: 'OPERATIONS',
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant,
+                      ),
+                      onTap: () => Get.toNamed(AppRoutes.operations),
+                      child: Text(
+                        'Brain health, sync status, and infrastructure metrics',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall!
+                            .copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ),
 
                     // Bottom padding
                     const SizedBox(height: FiftySpacing.xxl),

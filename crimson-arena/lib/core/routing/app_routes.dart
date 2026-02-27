@@ -8,4 +8,5 @@ abstract class AppRoutes {
   static const String tasks = '/tasks';
   static const String achievements = '/achievements';
   static const String skills = '/skills';
+  static const String operations = '/operations';
 }

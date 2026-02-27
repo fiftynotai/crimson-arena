@@ -5,15 +5,15 @@ import '../../../../data/models/session_model.dart';
 import '../../../../shared/utils/format_utils.dart';
 import '../../../../shared/widgets/arena_card.dart';
 
-/// Sessions panel for the Brain Command Center.
+/// Sessions panel for the Operations page.
 ///
 /// Displays a compact list of recent brain sessions with timestamps,
 /// project names, brief IDs, modes, and summaries.
-class BrainSessionsPanel extends StatelessWidget {
+class SessionsPanel extends StatelessWidget {
   /// The list of sessions to display.
   final List<SessionModel> sessions;
 
-  const BrainSessionsPanel({super.key, required this.sessions});
+  const SessionsPanel({super.key, required this.sessions});
 
   @override
   Widget build(BuildContext context) {

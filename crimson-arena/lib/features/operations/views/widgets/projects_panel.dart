@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 import '../../../../data/models/project_model.dart';
 import '../../../../shared/widgets/arena_card.dart';
 
-/// Projects panel for the Brain Command Center.
+/// Projects panel for the Operations page.
 ///
 /// Displays registered brain projects as a wrapped grid of compact cards.
 /// Each card shows the project name, tech stack, and active/inactive status.
-class BrainProjectsPanel extends StatelessWidget {
+class ProjectsPanel extends StatelessWidget {
   /// The list of projects to display.
   final List<ProjectModel> projects;
 
-  const BrainProjectsPanel({super.key, required this.projects});
+  const ProjectsPanel({super.key, required this.projects});
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +69,13 @@ class BrainProjectsPanel extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Tooltip(
-                              message: proj.name.isNotEmpty ? proj.name : proj.slug,
+                              message: proj.name.isNotEmpty
+                                  ? proj.name
+                                  : proj.slug,
                               child: Text(
-                                proj.name.isNotEmpty ? proj.name : proj.slug,
+                                proj.name.isNotEmpty
+                                    ? proj.name
+                                    : proj.slug,
                                 style: textTheme.labelSmall!.copyWith(
                                   fontWeight: FiftyTypography.bold,
                                   color: colorScheme.onSurface,
@@ -90,7 +94,8 @@ class BrainProjectsPanel extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: isActive
                                   ? ext.success.withValues(alpha: 0.2)
-                                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+                                  : colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.2),
                               borderRadius: FiftyRadii.smRadius,
                             ),
                             child: Text(

@@ -11,6 +11,8 @@ import '../../features/home/bindings/home_bindings.dart';
 import '../../features/home/views/home_page.dart';
 import '../../features/instances/bindings/instances_bindings.dart';
 import '../../features/instances/views/instances_page.dart';
+import '../../features/operations/bindings/operations_bindings.dart';
+import '../../features/operations/views/operations_page.dart';
 import '../../features/skills/bindings/skills_bindings.dart';
 import '../../features/skills/views/skills_page.dart';
 import '../../features/tasks/bindings/tasks_bindings.dart';
@@ -84,6 +86,13 @@ class AppPages {
       name: AppRoutes.skills,
       page: () => const SkillsPage(),
       binding: SkillsBindings(),
+      customTransition: _transition,
+      transitionDuration: FiftyMotion.compiling,
+    ),
+    GetPage(
+      name: AppRoutes.operations,
+      page: () => const OperationsPage(),
+      binding: OperationsBindings(),
       customTransition: _transition,
       transitionDuration: FiftyMotion.compiling,
     ),
