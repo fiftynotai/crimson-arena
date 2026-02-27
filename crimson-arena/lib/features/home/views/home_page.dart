@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/constants/arena_breakpoints.dart';
+import '../../../core/routing/app_routes.dart';
+import '../../../shared/widgets/arena_card.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/home_view_model.dart';
-import 'widgets/agent_roster_strip.dart';
 import 'widgets/brain_briefs_panel.dart';
 import 'widgets/events_summary_card.dart';
 import 'widgets/instances_summary_card.dart';
@@ -14,12 +15,11 @@ import 'widgets/tasks_summary_card.dart';
 
 /// Home page -- the primary dashboard view.
 ///
-/// Displays five focused panels:
+/// Displays four focused panels:
 /// 1. Instances summary card (active/idle/total)
 /// 2. Tasks summary card (status counts)
 /// 3. Events summary card (recent events list)
 /// 4. Project briefs panel
-/// 5. Agent roster strip
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -88,8 +88,29 @@ class HomePage extends StatelessWidget {
                         )),
                     const SizedBox(height: FiftySpacing.md),
 
-                    // Agent roster strip
-                    const AgentRosterStrip(),
+                    // Quick link to Agents page
+                    ArenaCard(
+                      title: 'AGENTS',
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant,
+                      ),
+                      onTap: () => Get.toNamed(AppRoutes.agents),
+                      child: Text(
+                        'View agent roster, skill trees, and metrics',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall!
+                            .copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ),
 
                     // Bottom padding
                     const SizedBox(height: FiftySpacing.xxl),

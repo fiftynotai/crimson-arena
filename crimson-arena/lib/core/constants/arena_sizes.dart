@@ -14,24 +14,11 @@ class ArenaSizes {
   static const double navBarHeight = 56;
 
   // ---------------------------------------------------------------------------
-  // Agent roster strip
-  // ---------------------------------------------------------------------------
-
-  /// Height of the horizontal agent roster strip on the HOME page.
-  static const double rosterStripHeight = 148;
-
-  /// Width of a single agent card in the roster strip.
-  static const double rosterCardWidth = 120;
-
-  // ---------------------------------------------------------------------------
   // Monogram / avatar circles
   // ---------------------------------------------------------------------------
 
   /// Large monogram circle diameter (agent grid cards).
   static const double monogramLarge = 40;
-
-  /// Medium monogram circle diameter (roster strip cards).
-  static const double monogramMedium = 36;
 
   /// Small icon circle diameter (achievement cards).
   static const double iconCircleSmall = 36;
@@ -71,12 +58,6 @@ class ArenaSizes {
 
   /// Height of a full-size RPG stat bar (agent grid).
   static const double rpgStatBarHeight = 4;
-
-  /// Height of a mini RPG stat bar (roster strip).
-  static const double rpgStatBarMiniHeight = 16;
-
-  /// Width of a mini RPG stat bar column.
-  static const double rpgStatBarMiniWidth = 4;
 
   // ---------------------------------------------------------------------------
   // Column widths (table layouts)
@@ -132,16 +113,6 @@ class ArenaSizes {
 
   /// Height of the battle log scrollable list.
   static const double battleLogHeight = 280;
-
-  // ---------------------------------------------------------------------------
-  // Agent performance cards
-  // ---------------------------------------------------------------------------
-
-  /// Width of a single agent performance card.
-  static const double perfCardWidth = 160;
-
-  /// Size of the efficiency grade badge.
-  static const double gradeBadgeSize = 24;
 
   // ---------------------------------------------------------------------------
   // Skill heatmap

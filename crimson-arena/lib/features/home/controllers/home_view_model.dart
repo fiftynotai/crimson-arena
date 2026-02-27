@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:get/get.dart';
 
-import '../../../data/models/agent_model.dart';
 import '../../../data/models/brain_event_model.dart';
 import '../../../data/models/brief_model.dart';
 import '../../../data/models/instance_model.dart';
@@ -13,11 +10,11 @@ import '../../../services/project_selector_service.dart';
 
 /// ViewModel for the Home page.
 ///
-/// Manages focused dashboard state: agents, instances summary, recent tasks,
+/// Manages focused dashboard state: instances summary, recent tasks,
 /// recent events, and project-scoped briefs.
 ///
 /// Data flows from two sources:
-/// 1. REST polling (initial load + periodic fallback)
+/// 1. REST (initial load)
 /// 2. WebSocket streams (real-time updates)
 class HomeViewModel extends GetxController {
   final BrainApiService _apiService = Get.find();
@@ -30,13 +27,6 @@ class HomeViewModel extends GetxController {
 
   /// True during initial data fetch.
   final RxBool isLoading = true.obs;
-
-  // ---------------------------------------------------------------------------
-  // Agents
-  // ---------------------------------------------------------------------------
-
-  /// Agent roster indexed by agent name.
-  final RxMap<String, AgentModel> agents = <String, AgentModel>{}.obs;
 
   // ---------------------------------------------------------------------------
   // Instances
@@ -67,12 +57,6 @@ class HomeViewModel extends GetxController {
   final RxList<BriefModel> brainBriefs = <BriefModel>[].obs;
 
   // ---------------------------------------------------------------------------
-  // Polling timers
-  // ---------------------------------------------------------------------------
-
-  Timer? _stateTimer;
-
-  // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
 
@@ -81,16 +65,9 @@ class HomeViewModel extends GetxController {
     super.onInit();
     _fetchInitialData();
     _setupWebSocketListeners();
-    _setupPollingTimers();
 
     // Re-fetch data when the global project selector changes.
     ever(_projectSelector.selectedProjectSlug, (_) => refreshData());
-  }
-
-  @override
-  void onClose() {
-    _stateTimer?.cancel();
-    super.onClose();
   }
 
   // ---------------------------------------------------------------------------
@@ -101,7 +78,6 @@ class HomeViewModel extends GetxController {
     isLoading.value = true;
 
     await Future.wait([
-      _fetchState(),
       _fetchInstances(),
       _fetchRecentTasks(),
       _fetchRecentEvents(),
@@ -113,13 +89,6 @@ class HomeViewModel extends GetxController {
   // ---------------------------------------------------------------------------
   // REST data fetching
   // ---------------------------------------------------------------------------
-
-  Future<void> _fetchState() async {
-    final state = await _apiService.getState();
-    if (state != null) {
-      _parseState(state);
-    }
-  }
 
   Future<void> _fetchInstances() async {
     final data = await _apiService.getBrainInstances();
@@ -151,28 +120,8 @@ class HomeViewModel extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // State parsing
+  // Data parsing
   // ---------------------------------------------------------------------------
-
-  void _parseState(Map<String, dynamic> state) {
-    // Agents
-    final agentsData = state['agents'] as Map<String, dynamic>?;
-    if (agentsData != null) {
-      _parseAgents(agentsData);
-    }
-  }
-
-  void _parseAgents(Map<String, dynamic> agentsData) {
-    agents.clear();
-    for (final entry in agentsData.entries) {
-      if (entry.value is Map<String, dynamic>) {
-        agents[entry.key] = AgentModel.fromJson(
-          entry.key,
-          entry.value as Map<String, dynamic>,
-        );
-      }
-    }
-  }
 
   void _parseInstances(Map<String, dynamic> data) {
     final raw = data['instances'] as List<dynamic>? ?? [];
@@ -234,13 +183,6 @@ class HomeViewModel extends GetxController {
   // ---------------------------------------------------------------------------
 
   void _setupWebSocketListeners() {
-    // Full state updates (for agents)
-    ever(_wsService.state, (Map<String, dynamic>? wsState) {
-      if (wsState != null) {
-        _parseState(wsState);
-      }
-    });
-
     // Brain briefs
     ever(_wsService.brainBriefs, (Map<String, dynamic>? data) {
       if (data != null) {
@@ -260,29 +202,12 @@ class HomeViewModel extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // Polling fallback
-  // ---------------------------------------------------------------------------
-
-  void _setupPollingTimers() {
-    // State polling every 10s as fallback when WebSocket is disconnected.
-    _stateTimer = Timer.periodic(
-      const Duration(milliseconds: 10000),
-      (_) {
-        if (!_wsService.isConnected.value) {
-          _fetchState();
-        }
-      },
-    );
-  }
-
-  // ---------------------------------------------------------------------------
   // Public actions
   // ---------------------------------------------------------------------------
 
   /// Refresh all data.
   Future<void> refreshData() async {
     await Future.wait([
-      _fetchState(),
       _fetchInstances(),
       _fetchRecentTasks(),
       _fetchRecentEvents(),
