@@ -36,7 +36,7 @@ class BrainEventModel {
         machineHostname: json['machine_hostname'] as String?,
         projectSlug: json['project_slug'] as String?,
         instanceId: json['instance_id'] as String?,
-        createdAt: json['created_at'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? json['timestamp'] as String? ?? '',
       );
 
   static Map<String, dynamic> _tryParseJson(String s) {
