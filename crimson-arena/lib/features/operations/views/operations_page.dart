@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/constants/arena_breakpoints.dart';
+import '../../../data/models/project_model.dart';
+import '../../../data/models/session_model.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/operations_view_model.dart';
 import 'widgets/brain_health_panel.dart';
@@ -33,8 +35,8 @@ class OperationsPage extends StatelessWidget {
       title: 'OPERATIONS',
       activeTabIndex: 7,
       body: GetX<OperationsViewModel>(
-        builder: (controller) {
-          if (controller.isLoading.value) {
+        builder: (vm) {
+          if (vm.isLoading.value) {
             return const Center(
               child: FiftyLoadingIndicator(
                 style: FiftyLoadingStyle.sequence,
@@ -49,6 +51,13 @@ class OperationsPage extends StatelessWidget {
             );
           }
 
+          // Read all reactive values here so GetX tracks them.
+          final health = vm.brainHealth.value;
+          final sync = vm.syncStatus.value;
+          final knowledge = vm.knowledgeState.value;
+          final projects = vm.projects.toList();
+          final sessions = vm.sessions.toList();
+
           return LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > ArenaBreakpoints.wide;
@@ -60,8 +69,10 @@ class OperationsPage extends StatelessWidget {
               return SingleChildScrollView(
                 padding: EdgeInsets.all(pagePad),
                 child: isWide
-                    ? _buildWideLayout(controller)
-                    : _buildNarrowLayout(controller),
+                    ? _buildWideLayout(
+                        health, sync, knowledge, projects, sessions)
+                    : _buildNarrowLayout(
+                        health, sync, knowledge, projects, sessions),
               );
             },
           );
@@ -71,7 +82,13 @@ class OperationsPage extends StatelessWidget {
   }
 
   /// Wide layout: two columns side by side.
-  Widget _buildWideLayout(OperationsViewModel vm) {
+  Widget _buildWideLayout(
+    Map<String, dynamic>? health,
+    Map<String, dynamic>? sync,
+    Map<String, dynamic>? knowledge,
+    List<ProjectModel> projects,
+    List<SessionModel> sessions,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -79,11 +96,11 @@ class OperationsPage extends StatelessWidget {
         Expanded(
           child: Column(
             children: [
-              Obx(() => BrainHealthPanel(data: vm.brainHealth.value)),
+              BrainHealthPanel(data: health),
               const SizedBox(height: FiftySpacing.sm),
-              Obx(() => SyncStatusPanel(data: vm.syncStatus.value)),
+              SyncStatusPanel(data: sync),
               const SizedBox(height: FiftySpacing.sm),
-              Obx(() => KnowledgePanel(data: vm.knowledgeState.value)),
+              KnowledgePanel(data: knowledge),
             ],
           ),
         ),
@@ -92,9 +109,9 @@ class OperationsPage extends StatelessWidget {
         Expanded(
           child: Column(
             children: [
-              Obx(() => ProjectsPanel(projects: vm.projects)),
+              ProjectsPanel(projects: projects),
               const SizedBox(height: FiftySpacing.sm),
-              Obx(() => SessionsPanel(sessions: vm.sessions)),
+              SessionsPanel(sessions: sessions),
             ],
           ),
         ),
@@ -103,18 +120,24 @@ class OperationsPage extends StatelessWidget {
   }
 
   /// Narrow layout: single column stacked.
-  Widget _buildNarrowLayout(OperationsViewModel vm) {
+  Widget _buildNarrowLayout(
+    Map<String, dynamic>? health,
+    Map<String, dynamic>? sync,
+    Map<String, dynamic>? knowledge,
+    List<ProjectModel> projects,
+    List<SessionModel> sessions,
+  ) {
     return Column(
       children: [
-        Obx(() => BrainHealthPanel(data: vm.brainHealth.value)),
+        BrainHealthPanel(data: health),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => SyncStatusPanel(data: vm.syncStatus.value)),
+        SyncStatusPanel(data: sync),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => KnowledgePanel(data: vm.knowledgeState.value)),
+        KnowledgePanel(data: knowledge),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => ProjectsPanel(projects: vm.projects)),
+        ProjectsPanel(projects: projects),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => SessionsPanel(sessions: vm.sessions)),
+        SessionsPanel(sessions: sessions),
         const SizedBox(height: FiftySpacing.xxl),
       ],
     );
