@@ -91,7 +91,7 @@ class FormatUtils {
   /// Format an ISO timestamp to HH:MM:SS.
   static String formatTime(String timestamp) {
     try {
-      final dt = DateTime.parse(timestamp);
+      final dt = DateTime.parse(timestamp).toLocal();
       return '${_pad(dt.hour)}:${_pad(dt.minute)}:${_pad(dt.second)}';
     } catch (_) {
       return '--:--:--';
