@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/constants/arena_breakpoints.dart';
+import '../../../data/models/brain_event_model.dart';
+import '../../../data/models/brief_model.dart';
+import '../../../data/models/instance_model.dart';
+import '../../../data/models/project_model.dart';
+import '../../../data/models/task_model.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/project_detail_view_model.dart';
 import 'widgets/project_briefs_panel.dart';
@@ -73,6 +78,16 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                   );
                 }
 
+                // Read all reactive values here so GetX tracks them.
+                final project = vm.project.value;
+                final instances = vm.instances.toList();
+                final briefs = vm.briefs.toList();
+                final events = vm.recentEvents.toList();
+                final tasks = vm.tasks.toList();
+                final briefCounts = vm.briefStatusCounts;
+                final taskCounts = vm.taskStatusCounts;
+                final agentWork = vm.taskAgentWorkload;
+
                 return LayoutBuilder(
                   builder: (context, constraints) {
                     final isWide =
@@ -87,14 +102,18 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Back navigation row
                           _buildBackRow(colorScheme, textTheme),
                           const SizedBox(height: FiftySpacing.sm),
-                          // Main content
                           if (isWide)
-                            _buildWideLayout(vm)
+                            _buildWideLayout(
+                              project, instances, briefs, briefCounts,
+                              tasks, taskCounts, agentWork, events,
+                            )
                           else
-                            _buildNarrowLayout(vm),
+                            _buildNarrowLayout(
+                              project, instances, briefs, briefCounts,
+                              tasks, taskCounts, agentWork, events,
+                            ),
                         ],
                       ),
                     );
@@ -105,7 +124,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  /// Back navigation row with icon and label.
   Widget _buildBackRow(ColorScheme colorScheme, TextTheme textTheme) {
     return InkWell(
       onTap: () => Get.back(),
@@ -118,11 +136,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.arrow_back,
-              size: 16,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            Icon(Icons.arrow_back, size: 16, color: colorScheme.onSurfaceVariant),
             const SizedBox(width: FiftySpacing.xs),
             Text(
               'Back',
@@ -137,38 +151,41 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  /// Wide layout: two columns -- left: header + instances, right: briefs + tasks + events.
-  Widget _buildWideLayout(ProjectDetailViewModel vm) {
+  Widget _buildWideLayout(
+    ProjectModel? project,
+    List<InstanceModel> instances,
+    List<BriefModel> briefs,
+    Map<String, int> briefCounts,
+    List<TaskModel> tasks,
+    Map<String, int> taskCounts,
+    Map<String, int> agentWork,
+    List<BrainEventModel> events,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left column
         Expanded(
           child: Column(
             children: [
-              Obx(() => ProjectHeaderCard(project: vm.project.value)),
+              ProjectHeaderCard(project: project),
               const SizedBox(height: FiftySpacing.sm),
-              Obx(() => ProjectInstancesPanel(instances: vm.instances)),
+              ProjectInstancesPanel(instances: instances),
             ],
           ),
         ),
         const SizedBox(width: FiftySpacing.sm),
-        // Right column
         Expanded(
           child: Column(
             children: [
-              Obx(() => ProjectBriefsPanel(
-                    briefs: vm.briefs,
-                    statusCounts: vm.briefStatusCounts,
-                  )),
+              ProjectBriefsPanel(briefs: briefs, statusCounts: briefCounts),
               const SizedBox(height: FiftySpacing.sm),
-              Obx(() => ProjectTasksPanel(
-                    tasks: vm.tasks,
-                    statusCounts: vm.taskStatusCounts,
-                    agentWorkload: vm.taskAgentWorkload,
-                  )),
+              ProjectTasksPanel(
+                tasks: tasks,
+                statusCounts: taskCounts,
+                agentWorkload: agentWork,
+              ),
               const SizedBox(height: FiftySpacing.sm),
-              Obx(() => ProjectEventsPanel(events: vm.recentEvents)),
+              ProjectEventsPanel(events: events),
             ],
           ),
         ),
@@ -176,26 +193,31 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  /// Narrow layout: single column stacked.
-  Widget _buildNarrowLayout(ProjectDetailViewModel vm) {
+  Widget _buildNarrowLayout(
+    ProjectModel? project,
+    List<InstanceModel> instances,
+    List<BriefModel> briefs,
+    Map<String, int> briefCounts,
+    List<TaskModel> tasks,
+    Map<String, int> taskCounts,
+    Map<String, int> agentWork,
+    List<BrainEventModel> events,
+  ) {
     return Column(
       children: [
-        Obx(() => ProjectHeaderCard(project: vm.project.value)),
+        ProjectHeaderCard(project: project),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => ProjectInstancesPanel(instances: vm.instances)),
+        ProjectInstancesPanel(instances: instances),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => ProjectBriefsPanel(
-              briefs: vm.briefs,
-              statusCounts: vm.briefStatusCounts,
-            )),
+        ProjectBriefsPanel(briefs: briefs, statusCounts: briefCounts),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => ProjectTasksPanel(
-              tasks: vm.tasks,
-              statusCounts: vm.taskStatusCounts,
-              agentWorkload: vm.taskAgentWorkload,
-            )),
+        ProjectTasksPanel(
+          tasks: tasks,
+          statusCounts: taskCounts,
+          agentWorkload: agentWork,
+        ),
         const SizedBox(height: FiftySpacing.sm),
-        Obx(() => ProjectEventsPanel(events: vm.recentEvents)),
+        ProjectEventsPanel(events: events),
         const SizedBox(height: FiftySpacing.xxl),
       ],
     );
