@@ -79,6 +79,12 @@ class EventsViewModel extends GetxController {
     'monitoring',
     'sync',
     'instances',
+    'briefs',
+    'sessions',
+    'memory',
+    'errors',
+    'projects',
+    'metrics',
   ];
 
   // ---------------------------------------------------------------------------

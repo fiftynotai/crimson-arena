@@ -982,6 +982,58 @@ async def poll_brain(app: FastAPI):
             logger.warning("Brain polling error: %s", exc)
 
 
+async def stream_brain_events(app: FastAPI):
+    """Background task that consumes the brain SSE stream and broadcasts individual events via WebSocket."""
+    brain_config = app.state.brain_config
+    if not brain_config.get("url"):
+        logger.info("Brain URL not configured, SSE bridge disabled")
+        return
+
+    base_url = brain_config["url"].rstrip("/")
+    url = f"{base_url}/api/events/stream"
+    headers = {}
+    if brain_config.get("api_key"):
+        headers["Authorization"] = f"Bearer {brain_config['api_key']}"
+
+    backoff = 5  # initial reconnect delay in seconds
+
+    while True:
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=None, write=None, pool=None)) as client:
+                async with client.stream("GET", url, headers=headers) as resp:
+                    if resp.status_code != 200:
+                        logger.warning("Brain SSE stream returned %d, retrying in %ds", resp.status_code, backoff)
+                        await asyncio.sleep(backoff)
+                        backoff = min(backoff * 2, 60)
+                        continue
+
+                    logger.info("Brain SSE bridge connected")
+                    backoff = 5  # reset on successful connection
+
+                    async for line in resp.aiter_lines():
+                        if not line.startswith("data: "):
+                            continue
+                        try:
+                            event_data = json.loads(line[6:])
+                            # Skip keepalive/status messages
+                            if "event_name" not in event_data:
+                                continue
+                            await manager.broadcast({
+                                "type": "brain_event",
+                                "data": event_data,
+                            })
+                        except (json.JSONDecodeError, TypeError):
+                            continue
+
+        except asyncio.CancelledError:
+            logger.info("Brain SSE bridge stopped")
+            return
+        except Exception as exc:
+            logger.warning("Brain SSE bridge error: %s, retrying in %ds", exc, backoff)
+            await asyncio.sleep(backoff)
+            backoff = min(backoff * 2, 60)
+
+
 async def refresh_pricing_periodically(app: FastAPI):
     """Background task to refresh pricing cache every 24 hours."""
     while True:
@@ -1629,6 +1681,7 @@ async def lifespan(app: FastAPI):
     watcher_task = asyncio.create_task(watch_events_file(app))
     pricing_task = asyncio.create_task(refresh_pricing_periodically(app))
     brain_task = asyncio.create_task(poll_brain(app))
+    sse_bridge_task = asyncio.create_task(stream_brain_events(app))
 
     logger.info("Crimson Arena server ready")
 
@@ -1638,6 +1691,7 @@ async def lifespan(app: FastAPI):
     watcher_task.cancel()
     pricing_task.cancel()
     brain_task.cancel()
+    sse_bridge_task.cancel()
     try:
         await watcher_task
     except asyncio.CancelledError:
@@ -1648,6 +1702,10 @@ async def lifespan(app: FastAPI):
         pass
     try:
         await brain_task
+    except asyncio.CancelledError:
+        pass
+    try:
+        await sse_bridge_task
     except asyncio.CancelledError:
         pass
     if app.state.brain_client:

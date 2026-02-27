@@ -28,6 +28,18 @@ Color componentColor(String component) {
       return const Color(0xFF38BDF8); // cyan
     case 'instances':
       return const Color(0xFFFBBF24); // yellow
+    case 'briefs':
+      return const Color(0xFFE879F9); // fuchsia
+    case 'sessions':
+      return const Color(0xFF34D399); // emerald
+    case 'memory':
+      return const Color(0xFF60A5FA); // light blue
+    case 'errors':
+      return const Color(0xFFEF4444); // red
+    case 'projects':
+      return const Color(0xFF818CF8); // indigo
+    case 'metrics':
+      return const Color(0xFF2DD4BF); // teal
     default:
       return const Color(0xFF94A3B8); // gray
   }
