@@ -7,6 +7,8 @@ import 'package:get_storage/get_storage.dart';
 import 'core/bindings/app_bindings.dart';
 import 'core/routing/app_pages.dart';
 import 'core/routing/app_routes.dart';
+import 'features/home/bindings/home_bindings.dart';
+import 'features/home/views/home_page.dart';
 
 Future<void> main() async {
   // Use path URL strategy for clean URLs on web.
@@ -75,6 +77,13 @@ class CrimsonArenaApp extends StatelessWidget {
       // Routing configuration.
       initialRoute: AppRoutes.home,
       getPages: AppPages.pages,
+
+      // Catch unmatched routes (e.g. parameterized deep links) and redirect.
+      unknownRoute: GetPage(
+        name: '/not-found',
+        page: () => const HomePage(),
+        binding: HomeBindings(),
+      ),
 
       // Transitions defined per-page in AppPages (slide from right).
       // FDL rule: NO FADES -- kinetic slide transitions only.

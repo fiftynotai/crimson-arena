@@ -104,7 +104,10 @@ class FormatUtils {
   static String timeAgo(String? timestamp) {
     if (timestamp == null || timestamp.isEmpty) return '--';
     try {
-      final dt = DateTime.parse(timestamp).toUtc();
+      // Server timestamps are UTC but may lack the 'Z' suffix.
+      // DateTime.parse treats bare timestamps as local time, so force UTC.
+      var dt = DateTime.parse(timestamp);
+      if (!dt.isUtc) dt = DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond);
       final now = DateTime.now().toUtc();
       final diff = now.difference(dt);
 

@@ -1,6 +1,7 @@
 import 'package:fifty_theme/fifty_theme.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../data/models/project_model.dart';
 import '../../../../shared/widgets/arena_card.dart';
@@ -43,7 +44,10 @@ class ProjectsPanel extends StatelessWidget {
               runSpacing: FiftySpacing.sm,
               children: projects.map((proj) {
                 final isActive = proj.status == 'active';
-                return Container(
+                return InkWell(
+                  onTap: () => Get.toNamed('/projects/${proj.slug}'),
+                  borderRadius: FiftyRadii.smRadius,
+                  child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: FiftySpacing.sm,
                     vertical: FiftySpacing.xs,
@@ -125,6 +129,7 @@ class ProjectsPanel extends StatelessWidget {
                           ),
                         ),
                     ],
+                  ),
                   ),
                 );
               }).toList(),
