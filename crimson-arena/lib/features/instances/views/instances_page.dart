@@ -330,26 +330,37 @@ class _InstancesPageState extends State<InstancesPage> {
     final textTheme = theme.textTheme;
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'NO ACTIVE INSTANCES',
-            style: textTheme.titleLarge!.copyWith(
-              fontWeight: FiftyTypography.extraBold,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: FiftySpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'NO ACTIVE SESSIONS',
+              style: textTheme.titleLarge!.copyWith(
+                fontWeight: FiftyTypography.extraBold,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+              ),
             ),
-          ),
-          const SizedBox(height: FiftySpacing.sm),
-          Text(
-            '> Brain instances will appear here when Claude Code sessions are active.',
-            style: textTheme.bodyMedium!.copyWith(
-              fontWeight: FiftyTypography.medium,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            const SizedBox(height: FiftySpacing.sm),
+            Text(
+              '> Start a Claude Code session with /awaken to see instances here.',
+              style: textTheme.bodyMedium!.copyWith(
+                fontWeight: FiftyTypography.medium,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: FiftySpacing.xs),
+            Text(
+              '> Instances auto-expire after 4 hours of inactivity.',
+              style: textTheme.bodySmall!.copyWith(
+                fontWeight: FiftyTypography.regular,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
