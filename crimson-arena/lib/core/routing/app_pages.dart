@@ -13,6 +13,8 @@ import '../../features/instances/bindings/instances_bindings.dart';
 import '../../features/instances/views/instances_page.dart';
 import '../../features/operations/bindings/operations_bindings.dart';
 import '../../features/operations/views/operations_page.dart';
+import '../../features/project_detail/bindings/project_detail_bindings.dart';
+import '../../features/project_detail/views/project_detail_page.dart';
 import '../../features/skills/bindings/skills_bindings.dart';
 import '../../features/skills/views/skills_page.dart';
 import '../../features/tasks/bindings/tasks_bindings.dart';
@@ -93,6 +95,13 @@ class AppPages {
       name: AppRoutes.operations,
       page: () => const OperationsPage(),
       binding: OperationsBindings(),
+      customTransition: _transition,
+      transitionDuration: FiftyMotion.compiling,
+    ),
+    GetPage(
+      name: AppRoutes.projectDetail,
+      page: () => const ProjectDetailPage(),
+      binding: ProjectDetailBindings(),
       customTransition: _transition,
       transitionDuration: FiftyMotion.compiling,
     ),
