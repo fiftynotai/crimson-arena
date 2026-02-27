@@ -100,6 +100,10 @@ class _InstancesPageState extends State<InstancesPage> {
                   }
 
                   final instances = vm.instances;
+                  // Read expandedInstanceId here so GetX tracks it.
+                  // Reading it only inside itemBuilder (which runs during
+                  // layout, not build) won't register a listener.
+                  final expandedId = vm.expandedInstanceId.value;
 
                   if (instances.isEmpty) {
                     return _buildEmptyState(context);
@@ -118,8 +122,7 @@ class _InstancesPageState extends State<InstancesPage> {
                       itemCount: instances.length,
                       itemBuilder: (context, index) {
                         final instance = instances[index];
-                        final isExpanded =
-                            vm.expandedInstanceId.value == instance.id;
+                        final isExpanded = expandedId == instance.id;
 
                         return InstanceCard(
                           instance: instance,
