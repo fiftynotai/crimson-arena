@@ -9,6 +9,8 @@ import '../../../data/models/brief_model.dart';
 import '../../../data/models/instance_model.dart';
 import '../../../data/models/project_model.dart';
 import '../../../data/models/task_model.dart';
+import '../../../core/routing/app_routes.dart';
+import '../../../shared/widgets/arena_breadcrumb.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/project_detail_view_model.dart';
 import 'widgets/project_briefs_panel.dart';
@@ -52,6 +54,11 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     return ArenaScaffold(
       title: 'PROJECT',
       activeTabIndex: -1,
+      breadcrumbs: [
+        BreadcrumbSegment(label: 'HOME', route: AppRoutes.home),
+        BreadcrumbSegment(label: 'OPERATIONS', route: AppRoutes.operations),
+        BreadcrumbSegment(label: slug),
+      ],
       body: slug.isEmpty
           ? Center(
               child: Text(
@@ -102,8 +109,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildBackRow(colorScheme, textTheme),
-                          const SizedBox(height: FiftySpacing.sm),
                           if (isWide)
                             _buildWideLayout(
                               project, instances, briefs, briefCounts,
@@ -121,33 +126,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                 );
               },
             ),
-    );
-  }
-
-  Widget _buildBackRow(ColorScheme colorScheme, TextTheme textTheme) {
-    return InkWell(
-      onTap: () => Get.back(),
-      borderRadius: FiftyRadii.smRadius,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: FiftySpacing.xs,
-          vertical: FiftySpacing.xs,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.arrow_back, size: 16, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: FiftySpacing.xs),
-            Text(
-              'Back',
-              style: textTheme.labelMedium!.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                letterSpacing: FiftyTypography.letterSpacingLabelMedium,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

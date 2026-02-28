@@ -51,16 +51,9 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "arena.db")
 METRICS_FILE = os.path.join(METRICS_DIR, "agent-metrics.json")
 EVENTS_FILE = os.path.join(METRICS_DIR, "events.jsonl")
 BUDGET_FILE = os.path.join(METRICS_DIR, "budget.json")
-# Determine static directory: prefer Flutter build, fall back to vanilla JS
-FLUTTER_BUILD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "crimson-arena", "build", "web")
-VANILLA_STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
-
-if os.path.isdir(FLUTTER_BUILD) and os.path.isfile(os.path.join(FLUTTER_BUILD, "index.html")):
-    STATIC_DIR = FLUTTER_BUILD
-    logger.info("Serving Flutter Web build from %s", FLUTTER_BUILD)
-else:
-    STATIC_DIR = VANILLA_STATIC
-    logger.info("Serving vanilla JS dashboard from %s", VANILLA_STATIC)
+# Static directory: always serve from /static (deploy target for rsync)
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+logger.info("Serving dashboard from %s", STATIC_DIR)
 
 # ---------------------------------------------------------------------------
 # Pricing Data

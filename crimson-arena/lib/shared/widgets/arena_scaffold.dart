@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../core/constants/arena_breakpoints.dart';
 import '../../core/routing/app_routes.dart';
 import '../../services/brain_websocket_service.dart';
+import 'arena_breadcrumb.dart';
 import 'project_selector_dropdown.dart';
 
 /// Shared scaffold for all Crimson Arena pages.
@@ -28,11 +29,15 @@ class ArenaScaffold extends StatelessWidget {
   /// Index of the currently active tab (0-5), or -1 for secondary pages.
   final int activeTabIndex;
 
+  /// Optional breadcrumb trail displayed between the nav bar and page body.
+  final List<BreadcrumbSegment>? breadcrumbs;
+
   const ArenaScaffold({
     super.key,
     required this.title,
     required this.body,
     required this.activeTabIndex,
+    this.breadcrumbs,
   });
 
   static const _tabs = [
@@ -85,6 +90,8 @@ class ArenaScaffold extends StatelessWidget {
           body: Column(
             children: [
               _buildNavBar(context),
+              if (breadcrumbs != null && breadcrumbs!.isNotEmpty)
+                ArenaBreadcrumb(segments: breadcrumbs!),
               Expanded(
                 child: Stack(
                   children: [
