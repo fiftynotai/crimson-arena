@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/arena_breakpoints.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../shared/widgets/arena_card.dart';
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/home_view_model.dart';
 import 'widgets/brain_briefs_panel.dart';
@@ -57,6 +58,13 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Page header
+                    ArenaPageHeader(
+                      title: 'HOME',
+                      onRefresh: controller.refreshData,
+                      horizontalPadding: 0,
+                    ),
+
                     // Summary cards: row on wide, column on narrow
                     if (isWide)
                       const Row(

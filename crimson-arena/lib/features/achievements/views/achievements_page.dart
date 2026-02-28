@@ -3,6 +3,7 @@ import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/achievements_view_model.dart';
 import 'widgets/achievement_grid.dart';
@@ -88,7 +89,12 @@ class _AchievementsPageState extends State<AchievementsPage> {
 
         return Column(
           children: [
-            const SizedBox(height: FiftySpacing.md),
+            // Page header
+            Obx(() => ArenaPageHeader(
+                  title: 'ACHIEVEMENTS',
+                  summary:
+                      '${_vm.unlockedCount.value} / ${_vm.totalCount} unlocked',
+                )),
 
             // Summary header
             const Padding(

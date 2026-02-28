@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/arena_breakpoints.dart';
 import '../../../data/models/project_model.dart';
 import '../../../data/models/session_model.dart';
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/operations_view_model.dart';
 import 'widgets/brain_health_panel.dart';
@@ -68,11 +69,22 @@ class OperationsPage extends StatelessWidget {
 
               return SingleChildScrollView(
                 padding: EdgeInsets.all(pagePad),
-                child: isWide
-                    ? _buildWideLayout(
-                        health, sync, knowledge, projects, sessions)
-                    : _buildNarrowLayout(
-                        health, sync, knowledge, projects, sessions),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ArenaPageHeader(
+                      title: 'OPERATIONS',
+                      onRefresh: vm.refreshData,
+                      horizontalPadding: 0,
+                    ),
+                    if (isWide)
+                      _buildWideLayout(
+                          health, sync, knowledge, projects, sessions)
+                    else
+                      _buildNarrowLayout(
+                          health, sync, knowledge, projects, sessions),
+                  ],
+                ),
               );
             },
           );

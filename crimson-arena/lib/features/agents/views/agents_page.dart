@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/constants/arena_breakpoints.dart';
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/agents_view_model.dart';
 import 'widgets/agent_comparison_view.dart';
@@ -56,6 +57,14 @@ class AgentsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Page header
+                    Obx(() => ArenaPageHeader(
+                          title: 'AGENTS',
+                          summary: '${controller.agents.length} agents',
+                          onRefresh: controller.refreshData,
+                          horizontalPadding: 0,
+                        )),
+
                     // Header summary strip
                     _HeaderStrip(controller: controller),
                     const SizedBox(height: FiftySpacing.md),

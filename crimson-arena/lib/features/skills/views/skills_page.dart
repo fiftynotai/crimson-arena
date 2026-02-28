@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../core/constants/arena_sizes.dart';
 import '../../../core/constants/skill_constants.dart';
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/skills_view_model.dart';
 import 'widgets/skill_card_widget.dart';
@@ -49,7 +50,12 @@ class SkillsPage extends StatelessWidget {
 
         return Column(
           children: [
-            const SizedBox(height: FiftySpacing.md),
+            // Page header
+            Obx(() => ArenaPageHeader(
+                  title: 'SKILLS',
+                  summary: '${vm.filteredSkills.length} skills',
+                  onRefresh: vm.refreshData,
+                )),
 
             // Summary header
             _SkillsSummaryHeader(vm: vm),

@@ -1,5 +1,4 @@
 import 'package:crimson_arena/core/constants/arena_breakpoints.dart';
-import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../data/models/instance_model.dart';
 import '../../../shared/widgets/arena_hover_button.dart';
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/instances_view_model.dart';
 import 'widgets/agent_nexus_table.dart';
@@ -79,7 +79,13 @@ class _InstancesPageState extends State<InstancesPage> {
                   showDivider: false,
                 ),
               ),
-              _buildInstancesHeader(context, vm, horizontalPad: hPad),
+              Obx(() => ArenaPageHeader(
+                    title: 'INSTANCES',
+                    summary:
+                        '${vm.activeCount} active, ${vm.idleCount} idle',
+                    onRefresh: vm.refreshData,
+                    horizontalPadding: hPad,
+                  )),
 
               // Instance list
               Expanded(
@@ -141,81 +147,6 @@ class _InstancesPageState extends State<InstancesPage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildInstancesHeader(
-    BuildContext context,
-    InstancesViewModel vm, {
-    double horizontalPad = FiftySpacing.lg,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPad,
-        vertical: FiftySpacing.sm,
-      ),
-      child: Obx(() {
-        final active = vm.activeCount;
-        final idle = vm.idleCount;
-
-        return Row(
-          children: [
-            Text(
-              'INSTANCES',
-              style: textTheme.titleSmall!.copyWith(
-                fontWeight: FiftyTypography.extraBold,
-                color: colorScheme.onSurface,
-                letterSpacing: FiftyTypography.letterSpacingLabelMedium,
-              ),
-            ),
-            const SizedBox(width: FiftySpacing.sm),
-
-            // Count badge
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: FiftySpacing.sm,
-                vertical: FiftySpacing.xs,
-              ),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.15),
-                borderRadius: FiftyRadii.smRadius,
-                border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: Text(
-                '$active active, $idle idle',
-                style: ArenaTextStyles.mono(
-                  context,
-                  fontSize: FiftyTypography.labelSmall,
-                  fontWeight: FiftyTypography.semiBold,
-                  color: colorScheme.onSurface.withValues(alpha: 0.8),
-                ),
-              ),
-            ),
-
-            const Spacer(),
-
-            // Refresh button
-            ArenaHoverButton(
-              onTap: vm.refreshData,
-              child: Text(
-                'REFRESH',
-                style: textTheme.labelSmall!.copyWith(
-                  fontWeight: FiftyTypography.bold,
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: FiftyTypography.letterSpacingLabelMedium,
-                ),
-              ),
-            ),
-          ],
-        );
-      }),
     );
   }
 

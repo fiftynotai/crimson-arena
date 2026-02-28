@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 
 import '../../../services/project_selector_service.dart';
 import '../../../shared/widgets/arena_hover_button.dart';
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/tasks_view_model.dart';
 import 'widgets/agent_workload_bar.dart';
@@ -95,7 +96,12 @@ class _TasksPageState extends State<TasksPage> {
             }),
 
             // Header row
-            _buildHeader(context, vm, hPad),
+            Obx(() => ArenaPageHeader(
+                  title: 'TASKS',
+                  summary: '${vm.totalCount} tasks',
+                  onRefresh: vm.refreshData,
+                  horizontalPadding: hPad,
+                )),
 
             // Filter chips
             Obx(() {
@@ -263,55 +269,6 @@ class _TasksPageState extends State<TasksPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(
-    BuildContext context,
-    TasksViewModel vm,
-    double hPad,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: hPad,
-        vertical: FiftySpacing.sm,
-      ),
-      child: FiftySectionHeader(
-        title: 'TASK QUEUE',
-        size: FiftySectionHeaderSize.small,
-        showDivider: false,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Total count badge
-            Obx(() {
-              return FiftyBadge(
-                label: '${vm.totalCount} tasks',
-                customColor: colorScheme.primary,
-                showGlow: false,
-              );
-            }),
-            const SizedBox(width: FiftySpacing.sm),
-
-            // Refresh button
-            ArenaHoverButton(
-              onTap: vm.refreshData,
-              child: Text(
-                'REFRESH',
-                style: textTheme.labelSmall!.copyWith(
-                  fontWeight: FiftyTypography.bold,
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: FiftyTypography.letterSpacingLabelMedium,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

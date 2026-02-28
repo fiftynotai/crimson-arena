@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/arena_breakpoints.dart';
 import '../../../core/theme/arena_text_styles.dart';
 import '../../../shared/widgets/arena_hover_button.dart';
+import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/events_view_model.dart';
 import 'widgets/event_filter_bar.dart';
@@ -92,6 +93,14 @@ class _EventsPageState extends State<EventsPage> {
           ),
           child: Column(
             children: [
+              // Page header
+              Obx(() => ArenaPageHeader(
+                    title: 'EVENTS',
+                    summary: '${vm.historyTotal.value} total',
+                    onRefresh: vm.refreshData,
+                    horizontalPadding: 0,
+                  )),
+
               // Instance context banner
               Obx(() {
                 if (!vm.hasInstanceFilter) return const SizedBox.shrink();
