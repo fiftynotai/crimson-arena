@@ -9,6 +9,8 @@ import '../../features/events/bindings/events_bindings.dart';
 import '../../features/events/views/events_page.dart';
 import '../../features/home/bindings/home_bindings.dart';
 import '../../features/home/views/home_page.dart';
+import '../../features/instance_detail/bindings/instance_detail_bindings.dart';
+import '../../features/instance_detail/views/instance_detail_page.dart';
 import '../../features/instances/bindings/instances_bindings.dart';
 import '../../features/instances/views/instances_page.dart';
 import '../../features/operations/bindings/operations_bindings.dart';
@@ -51,8 +53,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.instanceDetail,
-      page: () => const InstancesPage(),
-      binding: InstancesBindings(),
+      page: () => const InstanceDetailPage(),
+      binding: InstanceDetailBindings(),
       customTransition: _transition,
       transitionDuration: FiftyMotion.compiling,
     ),

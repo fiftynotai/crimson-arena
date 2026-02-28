@@ -31,25 +31,6 @@ class InstancesPage extends StatefulWidget {
 
 class _InstancesPageState extends State<InstancesPage> {
   @override
-  void initState() {
-    super.initState();
-    // Handle deep linking: check if an instance ID was passed as a parameter.
-    _handleDeepLink();
-  }
-
-  void _handleDeepLink() {
-    final params = Get.parameters;
-    final instanceId = params['id'];
-    if (instanceId != null && instanceId.isNotEmpty) {
-      final vm = Get.find<InstancesViewModel>();
-      // Delay to allow instances to load first.
-      Future.delayed(FiftyMotion.compiling, () {
-        vm.expandInstance(instanceId);
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -206,6 +187,27 @@ class _InstancesPageState extends State<InstancesPage> {
 
     return Row(
       children: [
+        ArenaHoverButton(
+          onTap: () => Get.offNamed(
+            '/instances/${Uri.encodeComponent(instance.id)}',
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.open_in_new, size: 14, color: colorScheme.primary),
+              const SizedBox(width: FiftySpacing.xs),
+              Text(
+                'VIEW DETAIL',
+                style: textTheme.labelSmall!.copyWith(
+                  fontWeight: FiftyTypography.bold,
+                  color: colorScheme.primary,
+                  letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: FiftySpacing.md),
         ArenaHoverButton(
           onTap: () => Get.offNamed(
             '/events?instance=${Uri.encodeComponent(instance.id)}'
