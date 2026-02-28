@@ -63,20 +63,49 @@ class ArenaPageHeader extends StatelessWidget {
             ),
           ),
 
-          // Project context (reactive)
+          // Project context (reactive) + VIEW ALL clear button
           Obx(() {
-            final project =
-                Get.find<ProjectSelectorService>().selectedProject;
+            final selectorService = Get.find<ProjectSelectorService>();
+            final project = selectorService.selectedProject;
             if (project == null) return const SizedBox.shrink();
             return Padding(
               padding: const EdgeInsets.only(left: FiftySpacing.sm),
-              child: Text(
-                '(${project.name})',
-                style: textTheme.titleSmall!.copyWith(
-                  fontWeight: FiftyTypography.medium,
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: FiftyTypography.letterSpacingLabelMedium,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '(${project.name})',
+                    style: textTheme.titleSmall!.copyWith(
+                      fontWeight: FiftyTypography.medium,
+                      color: colorScheme.onSurfaceVariant,
+                      letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+                    ),
+                  ),
+                  const SizedBox(width: FiftySpacing.xs),
+                  ArenaHoverButton(
+                    onTap: () => selectorService.selectProject(null),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.close,
+                          size: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: FiftySpacing.xs),
+                        Text(
+                          'VIEW ALL',
+                          style: textTheme.labelSmall!.copyWith(
+                            fontWeight: FiftyTypography.bold,
+                            color: colorScheme.onSurfaceVariant,
+                            letterSpacing:
+                                FiftyTypography.letterSpacingLabelMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             );
           }),
