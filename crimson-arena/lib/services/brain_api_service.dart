@@ -121,8 +121,23 @@ class BrainApiService extends GetxService {
       );
 
   /// Fetch cross-instance agent performance summary.
-  Future<Map<String, dynamic>?> getAgentMetricsSummary() =>
-      _getJson(ApiConstants.agentMetricsSummary);
+  ///
+  /// When [projectSlug] is provided the brain filters the summary
+  /// to metrics from that single project.
+  Future<Map<String, dynamic>?> getAgentMetricsSummary({
+    String? projectSlug,
+  }) {
+    final params = <String, String>{};
+    if (projectSlug != null) params['project_slug'] = projectSlug;
+    return _getJson(
+      ApiConstants.agentMetricsSummary,
+      queryParams: params.isNotEmpty ? params : null,
+    );
+  }
+
+  /// Fetch per-project metrics breakdown for a single [agent].
+  Future<Map<String, dynamic>?> getAgentMetricsByProject(String agent) =>
+      _getJson(ApiConstants.agentMetricsByProject(agent));
 
   /// Fetch registered projects.
   Future<Map<String, dynamic>?> getBrainProjects() =>

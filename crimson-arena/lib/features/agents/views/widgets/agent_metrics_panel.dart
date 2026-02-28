@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/agent_constants.dart';
 import '../../../../data/models/agent_model.dart';
+import '../../../../data/models/agent_project_metrics_model.dart';
 import '../../../../shared/utils/format_utils.dart';
 import '../../controllers/agents_view_model.dart';
 
@@ -179,6 +180,10 @@ class AgentMetricsPanel extends StatelessWidget {
                   ),
                 ),
               ],
+
+              // Project breakdown
+              const SizedBox(height: FiftySpacing.lg),
+              _ProjectBreakdownSection(color: color),
 
               // Compare button
               const SizedBox(height: FiftySpacing.lg),
@@ -476,6 +481,213 @@ class _TokenDistributionChart extends StatelessWidget {
         ],
       ),
       duration: const Duration(milliseconds: 300),
+    );
+  }
+}
+
+/// Per-project breakdown section showing how an agent's usage is distributed
+/// across projects.
+class _ProjectBreakdownSection extends StatelessWidget {
+  final Color color;
+
+  const _ProjectBreakdownSection({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Get.find<AgentsViewModel>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return Obx(() {
+      final breakdown = vm.agentProjectBreakdown;
+      final isLoading = vm.isProjectBreakdownLoading.value;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PROJECT BREAKDOWN',
+            style: textTheme.labelSmall!.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.3),
+              letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+            ),
+          ),
+          const SizedBox(height: FiftySpacing.sm),
+          if (isLoading)
+            SizedBox(
+              height: 40,
+              child: Center(
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: color.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            )
+          else if (breakdown.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(FiftySpacing.sm),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: FiftyRadii.mdRadius,
+              ),
+              child: Center(
+                child: Text(
+                  'No project data available',
+                  style: textTheme.labelSmall!.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(FiftySpacing.sm),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: FiftyRadii.mdRadius,
+              ),
+              child: Column(
+                children: [
+                  for (int i = 0; i < breakdown.length; i++) ...[
+                    if (i > 0) const SizedBox(height: FiftySpacing.sm),
+                    _ProjectRow(
+                      metrics: breakdown[i],
+                      color: color,
+                      maxEventCount: breakdown.first.eventCount,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      );
+    });
+  }
+}
+
+/// Single row within the project breakdown showing slug, runs, tokens, and
+/// duration with a proportional bar.
+class _ProjectRow extends StatelessWidget {
+  final AgentProjectMetrics metrics;
+  final Color color;
+  final int maxEventCount;
+
+  const _ProjectRow({
+    required this.metrics,
+    required this.color,
+    required this.maxEventCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final fraction =
+        maxEventCount > 0 ? metrics.eventCount / maxEventCount : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Project name
+        Text(
+          metrics.projectSlug,
+          style: textTheme.labelSmall!.copyWith(
+            fontWeight: FiftyTypography.bold,
+            color: colorScheme.onSurface.withValues(alpha: 0.8),
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: FiftySpacing.xs),
+        // Stats row: runs | tokens | duration
+        Row(
+          children: [
+            _MiniStat(
+              label: 'runs',
+              value: FormatUtils.formatNumber(metrics.eventCount),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
+            const SizedBox(width: FiftySpacing.md),
+            _MiniStat(
+              label: 'tokens',
+              value: FormatUtils.formatTokens(metrics.totalTokens),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
+            const SizedBox(width: FiftySpacing.md),
+            _MiniStat(
+              label: 'time',
+              value: FormatUtils.formatDuration(metrics.durationSeconds),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+            ),
+          ],
+        ),
+        const SizedBox(height: FiftySpacing.xs),
+        // Proportional bar
+        SizedBox(
+          height: 3,
+          child: ClipRRect(
+            borderRadius: FiftyRadii.smRadius,
+            child: LinearProgressIndicator(
+              value: fraction.clamp(0, 1).toDouble(),
+              backgroundColor: colorScheme.onSurface.withValues(alpha: 0.05),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                color.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Tiny label + value pair used inside the project row.
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: textTheme.labelSmall!.copyWith(
+            fontWeight: FiftyTypography.bold,
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          label,
+          style: textTheme.labelSmall!.copyWith(
+            fontWeight: FiftyTypography.medium,
+            color: colorScheme.onSurface.withValues(alpha: 0.3),
+            fontSize: 9,
+          ),
+        ),
+      ],
     );
   }
 }

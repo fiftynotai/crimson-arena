@@ -1965,11 +1965,40 @@ async def brain_instance_log(
 
 
 @app.get("/api/brain/agent-metrics/summary")
-async def brain_agent_metrics_summary(request: Request):
-    """Cross-instance agent performance summary from brain server."""
-    data = await brain_request(request.app, "/api/agent-metrics/summary")
+async def brain_agent_metrics_summary(
+    request: Request,
+    project_slug: str = Query(default=None),
+):
+    """Cross-instance agent performance summary from brain server.
+
+    Optionally filtered to a single project when ``project_slug`` is provided.
+    """
+    params = {}
+    if project_slug is not None:
+        params["project_slug"] = project_slug
+    data = await brain_request(
+        request.app,
+        "/api/agent-metrics/summary",
+        params=params if params else None,
+    )
     if data is None:
         return {"agents": [], "recent_by_agent": {}, "status": "offline"}
+    return data
+
+
+@app.get("/api/brain/agent-metrics/by-project")
+async def brain_agent_metrics_by_project(
+    request: Request,
+    agent: str = Query(..., min_length=1),
+):
+    """Per-project token/duration breakdown for a single agent."""
+    data = await brain_request(
+        request.app,
+        "/api/agent-metrics/by-project",
+        params={"agent": agent},
+    )
+    if data is None:
+        return {"agent": agent, "projects": [], "status": "offline"}
     return data
 
 

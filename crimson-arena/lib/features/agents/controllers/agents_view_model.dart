@@ -2,8 +2,10 @@ import 'package:get/get.dart';
 
 import '../../../core/constants/agent_skill_trees.dart';
 import '../../../data/models/agent_model.dart';
+import '../../../data/models/agent_project_metrics_model.dart';
 import '../../../services/brain_api_service.dart';
 import '../../../services/brain_websocket_service.dart';
+import '../../../services/project_selector_service.dart';
 
 /// ViewModel for the Agents page.
 ///
@@ -13,6 +15,7 @@ import '../../../services/brain_websocket_service.dart';
 class AgentsViewModel extends GetxController {
   final BrainApiService _apiService = Get.find();
   final BrainWebSocketService _wsService = Get.find();
+  final ProjectSelectorService _projectSelector = Get.find();
 
   // ---------------------------------------------------------------------------
   // State
@@ -44,6 +47,12 @@ class AgentsViewModel extends GetxController {
   final RxMap<String, Set<String>> skillProgress =
       <String, Set<String>>{}.obs;
 
+  /// Per-project metrics breakdown for the currently selected agent.
+  final agentProjectBreakdown = <AgentProjectMetrics>[].obs;
+
+  /// Whether the project breakdown is currently loading.
+  final isProjectBreakdownLoading = false.obs;
+
   // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
@@ -53,6 +62,20 @@ class AgentsViewModel extends GetxController {
     super.onInit();
     _fetchAllData();
     _setupWebSocketListeners();
+
+    // Re-fetch metrics summary when the global project changes.
+    ever(_projectSelector.selectedProjectSlug, (_) {
+      _fetchAgentMetricsSummary();
+    });
+
+    // Fetch per-project breakdown when the selected agent changes.
+    ever(selectedAgent, (String? agent) {
+      if (agent != null) {
+        _fetchAgentProjectBreakdown(agent);
+      } else {
+        agentProjectBreakdown.clear();
+      }
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -85,10 +108,29 @@ class AgentsViewModel extends GetxController {
   }
 
   Future<void> _fetchAgentMetricsSummary() async {
-    final data = await _apiService.getAgentMetricsSummary();
+    final projectSlug = _projectSelector.selectedProjectSlug.value;
+    final data = await _apiService.getAgentMetricsSummary(
+      projectSlug: projectSlug,
+    );
     if (data != null) {
       agentMetricsSummary.value = data;
     }
+  }
+
+  Future<void> _fetchAgentProjectBreakdown(String agent) async {
+    isProjectBreakdownLoading.value = true;
+    final data = await _apiService.getAgentMetricsByProject(agent);
+    if (data != null) {
+      final raw = data['projects'] as List<dynamic>? ?? [];
+      agentProjectBreakdown.value = raw
+          .whereType<Map<String, dynamic>>()
+          .map(AgentProjectMetrics.fromJson)
+          .toList()
+        ..sort((a, b) => b.eventCount.compareTo(a.eventCount));
+    } else {
+      agentProjectBreakdown.clear();
+    }
+    isProjectBreakdownLoading.value = false;
   }
 
   // ---------------------------------------------------------------------------

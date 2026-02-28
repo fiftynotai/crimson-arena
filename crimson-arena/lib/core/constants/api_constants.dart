@@ -58,6 +58,10 @@ class ApiConstants {
   static String projectBudget(String slug) =>
       '$apiBase/brain/projects/$slug/budget';
 
+  /// Per-project metrics breakdown for a single agent.
+  static String agentMetricsByProject(String agent) =>
+      '$apiBase/brain/agent-metrics/by-project?agent=$agent';
+
   // ---------------------------------------------------------------------------
   // Polling intervals (milliseconds)
   // ---------------------------------------------------------------------------
