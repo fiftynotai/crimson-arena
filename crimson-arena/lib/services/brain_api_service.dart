@@ -230,9 +230,26 @@ class BrainApiService extends GetxService {
   Future<Map<String, dynamic>?> getBrainKnowledge() =>
       _getJson(ApiConstants.brainKnowledge);
 
-  /// Fetch skill invocation heatmap.
-  Future<Map<String, dynamic>?> getSkillHeatmap({String range = 'all'}) =>
-      _getJson(ApiConstants.skillHeatmap, queryParams: {'range': range});
+  /// Fetch skill invocation heatmap, optionally filtered by project.
+  Future<Map<String, dynamic>?> getSkillHeatmap({
+    String range = 'all',
+    String? projectSlug,
+  }) {
+    final params = <String, String>{'range': range};
+    if (projectSlug != null) params['project'] = projectSlug;
+    return _getJson(ApiConstants.skillHeatmap, queryParams: params);
+  }
+
+  /// Fetch recent invocations for a specific skill.
+  Future<Map<String, dynamic>?> getSkillUsage(
+    String name, {
+    int limit = 20,
+    String? projectSlug,
+  }) {
+    final params = <String, String>{'limit': '$limit'};
+    if (projectSlug != null) params['project'] = projectSlug;
+    return _getJson(ApiConstants.skillUsage(name), queryParams: params);
+  }
 
   // ---------------------------------------------------------------------------
   // Lifecycle

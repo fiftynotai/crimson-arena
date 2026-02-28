@@ -9,6 +9,7 @@ import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/skills_view_model.dart';
 import 'widgets/skill_card_widget.dart';
+import 'widgets/skill_usage_modal.dart';
 
 /// Skills page -- RPG game card gallery for all 22 Igris AI skills.
 ///
@@ -336,11 +337,15 @@ class _SkillCardGrid extends StatelessWidget {
               childAspectRatio: ArenaSizes.skillCardAspectRatio,
             ),
             itemCount: skills.length,
-            itemBuilder: (_, index) {
+            itemBuilder: (context, index) {
               final skill = skills[index];
               return SkillCardWidget(
                 model: skill,
                 maxInvocations: maxInvocations,
+                onTap: () {
+                  vm.fetchSkillUsage(skill.name);
+                  SkillUsageModal.show(context, vm, skill);
+                },
               );
             },
           );

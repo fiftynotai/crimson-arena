@@ -429,10 +429,12 @@ CREATE TABLE IF NOT EXISTS skill_invocations (
     ts TEXT NOT NULL,
     skill_name TEXT NOT NULL,
     session_date TEXT NOT NULL,
+    project_slug TEXT DEFAULT '',
     UNIQUE(skill_name, ts)
 );
 CREATE INDEX IF NOT EXISTS idx_skill_name ON skill_invocations(skill_name);
 CREATE INDEX IF NOT EXISTS idx_skill_session_date ON skill_invocations(session_date);
+CREATE INDEX IF NOT EXISTS idx_skill_project ON skill_invocations(project_slug);
 
 CREATE TABLE IF NOT EXISTS context_window (
     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -464,6 +466,20 @@ CREATE TABLE IF NOT EXISTS context_breakdown (
 async def init_db(db: aiosqlite.Connection):
     """Create tables and indexes if they do not exist."""
     await db.executescript(SCHEMA_SQL)
+
+    # Migrate existing skill_invocations: add project_slug column if missing.
+    try:
+        await db.execute("ALTER TABLE skill_invocations ADD COLUMN project_slug TEXT DEFAULT ''")
+        logger.info("Migrated skill_invocations: added project_slug column")
+    except Exception:
+        pass  # Column already exists
+
+    # Ensure project_slug index exists (idempotent).
+    try:
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_skill_project ON skill_invocations(project_slug)")
+    except Exception:
+        pass
+
     await db.commit()
     logger.info("Database initialized at %s", DB_PATH)
 
@@ -659,10 +675,11 @@ async def insert_event(db: aiosqlite.Connection, event: dict):
     # Handle skill_invoke: insert into skill_invocations table
     if event_type == "skill_invoke":
         skill_name = event.get("skill_name", "")
+        project_slug = event.get("project_slug", "")
         if skill_name:
             await db.execute(
-                "INSERT OR IGNORE INTO skill_invocations (ts, skill_name, session_date) VALUES (?, ?, ?)",
-                (ts, skill_name, session_date),
+                "INSERT OR IGNORE INTO skill_invocations (ts, skill_name, session_date, project_slug) VALUES (?, ?, ?, ?)",
+                (ts, skill_name, session_date, project_slug),
             )
 
     await db.commit()
@@ -1411,25 +1428,30 @@ async def build_knowledge_state():
         return {"status": "unavailable", "learnings_count": 0, "errors_count": 0, "patterns_count": 0, "recent": []}
 
 
-async def build_skill_heatmap(db, range_key="all"):
-    """Build skill invocation heatmap."""
+async def build_skill_heatmap(db, range_key="all", project_slug=None):
+    """Build skill invocation heatmap, optionally filtered by project."""
     try:
+        where_clauses = []
+        params = []
+
         if range_key == "today":
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-            cursor = await db.execute(
-                "SELECT skill_name, COUNT(*) as cnt FROM skill_invocations WHERE session_date = ? GROUP BY skill_name ORDER BY cnt DESC",
-                (today,),
-            )
+            where_clauses.append("session_date = ?")
+            params.append(today)
         elif range_key == "week":
             week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
-            cursor = await db.execute(
-                "SELECT skill_name, COUNT(*) as cnt FROM skill_invocations WHERE session_date >= ? GROUP BY skill_name ORDER BY cnt DESC",
-                (week_ago,),
-            )
-        else:
-            cursor = await db.execute(
-                "SELECT skill_name, COUNT(*) as cnt FROM skill_invocations GROUP BY skill_name ORDER BY cnt DESC"
-            )
+            where_clauses.append("session_date >= ?")
+            params.append(week_ago)
+
+        if project_slug:
+            where_clauses.append("project_slug = ?")
+            params.append(project_slug)
+
+        where_sql = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+        cursor = await db.execute(
+            f"SELECT skill_name, COUNT(*) as cnt FROM skill_invocations{where_sql} GROUP BY skill_name ORDER BY cnt DESC",
+            params,
+        )
         rows = await cursor.fetchall()
         skills = {r[0]: r[1] for r in rows}
         total = sum(skills.values())
@@ -1766,6 +1788,7 @@ class AgentEvent(BaseModel):
     ts: str
     event: str = Field(..., pattern="^(start|stop|skill_invoke)$")
     skill_name: str = ""
+    project_slug: str = ""
     agent: str
     agent_id: str = ""
     raw_type: str = ""
@@ -2220,10 +2243,54 @@ async def brain_project_budget_set(slug: str, request: Request):
 
 
 @app.get("/api/skills")
-async def get_skills(range: str = "all"):
-    """Skill invocation heatmap data."""
+async def get_skills(range: str = "all", project: str = None):
+    """Skill invocation heatmap data, optionally filtered by project slug."""
     db = app.state.db
-    return JSONResponse(await build_skill_heatmap(db, range))
+    return JSONResponse(await build_skill_heatmap(db, range, project_slug=project))
+
+
+@app.get("/api/skills/{skill_name}/usage")
+async def get_skill_usage(skill_name: str, project: str = None, limit: int = 20):
+    """Recent invocations for a specific skill, optionally filtered by project."""
+    db = app.state.db
+    try:
+        where_clauses = ["skill_name = ?"]
+        params: list = [skill_name]
+
+        if project:
+            where_clauses.append("project_slug = ?")
+            params.append(project)
+
+        where_sql = " WHERE " + " AND ".join(where_clauses)
+        params.append(limit)
+
+        cursor = await db.execute(
+            f"SELECT ts, session_date, project_slug FROM skill_invocations{where_sql} ORDER BY ts DESC LIMIT ?",
+            params,
+        )
+        rows = await cursor.fetchall()
+        invocations = [
+            {"ts": r[0], "session_date": r[1], "project_slug": r[2]}
+            for r in rows
+        ]
+
+        # Total count for this skill (with same filters minus limit).
+        count_params = params[:-1]  # exclude limit
+        count_cursor = await db.execute(
+            f"SELECT COUNT(*) FROM skill_invocations{where_sql}",
+            count_params,
+        )
+        count_row = await count_cursor.fetchone()
+        total = count_row[0] if count_row else 0
+
+        return JSONResponse({
+            "skill_name": skill_name,
+            "total": total,
+            "invocations": invocations,
+        })
+    except Exception as exc:
+        logger.warning("get_skill_usage failed: %s", exc)
+        return JSONResponse({"skill_name": skill_name, "total": 0, "invocations": []})
 
 
 @app.post("/api/event")
@@ -2250,7 +2317,11 @@ async def post_event(event: AgentEvent):
         try:
             await manager.broadcast({
                 "type": "skill_event",
-                "data": {"skill_name": event.skill_name, "ts": event.ts or datetime.now(timezone.utc).isoformat()},
+                "data": {
+                    "skill_name": event.skill_name,
+                    "ts": event.ts or datetime.now(timezone.utc).isoformat(),
+                    "project_slug": event.project_slug,
+                },
             })
         except Exception:
             pass

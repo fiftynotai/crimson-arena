@@ -28,10 +28,14 @@ class SkillCardWidget extends StatefulWidget {
   /// Maximum invocations across all skills (for usage bar normalization).
   final int maxInvocations;
 
+  /// Optional tap callback for drill-down (e.g. skill usage modal).
+  final VoidCallback? onTap;
+
   const SkillCardWidget({
     super.key,
     required this.model,
     required this.maxInvocations,
+    this.onTap,
   });
 
   @override
@@ -55,11 +59,13 @@ class _SkillCardWidgetState extends State<SkillCardWidget> {
     final borderColor =
         _hovered ? rarityColor.withValues(alpha: 0.6) : rarityColor.withValues(alpha: 0.3);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        cursor: SystemMouseCursors.click,
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
         padding: const EdgeInsets.all(FiftySpacing.md),
@@ -140,6 +146,7 @@ class _SkillCardWidgetState extends State<SkillCardWidget> {
             ],
           ],
         ),
+      ),
       ),
     );
   }

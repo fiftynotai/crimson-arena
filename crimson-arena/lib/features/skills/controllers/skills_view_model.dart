@@ -2,8 +2,10 @@ import 'package:get/get.dart';
 
 import '../../../core/constants/skill_constants.dart';
 import '../../../data/models/skill_card_model.dart';
+import '../../../data/models/skill_usage_model.dart';
 import '../../../services/brain_api_service.dart';
 import '../../../services/brain_websocket_service.dart';
+import '../../../services/project_selector_service.dart';
 
 /// ViewModel for the Skills page.
 ///
@@ -11,10 +13,14 @@ import '../../../services/brain_websocket_service.dart';
 /// skill invocation events via WebSocket, and merges static
 /// [SkillConstants.registry] metadata with live usage counts.
 ///
+/// Supports global project filtering via [ProjectSelectorService] and
+/// skill usage drill-down via [fetchSkillUsage].
+///
 /// Exposes a filtered + sorted list of [SkillCardModel] for the UI.
 class SkillsViewModel extends GetxController {
   final BrainApiService _apiService = Get.find();
   final BrainWebSocketService _wsService = Get.find();
+  final ProjectSelectorService _projectSelector = Get.find();
 
   // ---------------------------------------------------------------------------
   // Reactive state
@@ -36,6 +42,22 @@ class SkillsViewModel extends GetxController {
   final RxInt skillHeatmapTotal = 0.obs;
 
   // ---------------------------------------------------------------------------
+  // Skill usage drill-down state
+  // ---------------------------------------------------------------------------
+
+  /// The name of the skill currently being inspected (null = no modal).
+  final selectedSkillName = Rxn<String>();
+
+  /// Recent invocations for the selected skill.
+  final selectedSkillUsage = <SkillUsageModel>[].obs;
+
+  /// Total invocation count for the selected skill.
+  final selectedSkillTotal = 0.obs;
+
+  /// Whether a skill usage fetch is in progress.
+  final isLoadingUsage = false.obs;
+
+  // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
 
@@ -44,6 +66,9 @@ class SkillsViewModel extends GetxController {
     super.onInit();
     _fetchSkillHeatmap();
     _setupWebSocketListeners();
+
+    // Re-fetch when the global project selector changes.
+    ever(_projectSelector.selectedProjectSlug, (_) => refreshData());
   }
 
   // ---------------------------------------------------------------------------
@@ -52,7 +77,10 @@ class SkillsViewModel extends GetxController {
 
   Future<void> _fetchSkillHeatmap() async {
     isLoading.value = true;
-    final data = await _apiService.getSkillHeatmap(range: 'all');
+    final data = await _apiService.getSkillHeatmap(
+      range: 'all',
+      projectSlug: _projectSelector.selectedProjectSlug.value,
+    );
     if (data != null) {
       _parseSkillHeatmap(data);
     }
@@ -71,6 +99,43 @@ class SkillsViewModel extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
+  // Skill usage drill-down
+  // ---------------------------------------------------------------------------
+
+  /// Fetch recent usage for a specific skill and populate the drill-down state.
+  Future<void> fetchSkillUsage(String skillName) async {
+    selectedSkillName.value = skillName;
+    isLoadingUsage.value = true;
+    selectedSkillUsage.clear();
+    selectedSkillTotal.value = 0;
+
+    final data = await _apiService.getSkillUsage(
+      skillName,
+      projectSlug: _projectSelector.selectedProjectSlug.value,
+    );
+
+    if (data != null) {
+      final invocations = data['invocations'] as List<dynamic>? ?? [];
+      selectedSkillUsage.assignAll(
+        invocations
+            .whereType<Map<String, dynamic>>()
+            .map(SkillUsageModel.fromJson)
+            .toList(),
+      );
+      selectedSkillTotal.value = (data['total'] as num?)?.toInt() ?? 0;
+    }
+
+    isLoadingUsage.value = false;
+  }
+
+  /// Clear the skill usage drill-down state.
+  void clearSkillUsage() {
+    selectedSkillName.value = null;
+    selectedSkillUsage.clear();
+    selectedSkillTotal.value = 0;
+  }
+
+  // ---------------------------------------------------------------------------
   // WebSocket listeners
   // ---------------------------------------------------------------------------
 
@@ -79,9 +144,17 @@ class SkillsViewModel extends GetxController {
     ever(_wsService.skillEvent, (Map<String, dynamic>? data) {
       if (data != null) {
         final skillName = data['skill_name'] as String?;
+        final projectSlug = data['project_slug'] as String?;
+        final activeProject = _projectSelector.selectedProjectSlug.value;
+
+        // Only increment if no project filter, or the event matches.
         if (skillName != null) {
-          skillHeatmap[skillName] = (skillHeatmap[skillName] ?? 0) + 1;
-          skillHeatmapTotal.value++;
+          if (activeProject == null ||
+              activeProject.isEmpty ||
+              projectSlug == activeProject) {
+            skillHeatmap[skillName] = (skillHeatmap[skillName] ?? 0) + 1;
+            skillHeatmapTotal.value++;
+          }
         }
       }
     });

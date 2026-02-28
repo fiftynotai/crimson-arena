@@ -44,6 +44,9 @@ class ApiConstants {
   // Dynamic endpoints
   // ---------------------------------------------------------------------------
 
+  /// Per-skill recent invocation usage.
+  static String skillUsage(String name) => '$apiBase/skills/$name/usage';
+
   /// Per-instance aggregated agent stats.
   static String instanceAgents(String id) =>
       '$apiBase/brain/instances/$id/agents';
