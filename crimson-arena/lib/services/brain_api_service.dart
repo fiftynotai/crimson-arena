@@ -128,6 +128,10 @@ class BrainApiService extends GetxService {
   Future<Map<String, dynamic>?> getBrainProjects() =>
       _getJson(ApiConstants.brainProjects);
 
+  /// Fetch per-project budget with cost breakdown.
+  Future<Map<String, dynamic>?> getProjectBudget(String slug) =>
+      _getJson(ApiConstants.projectBudget(slug));
+
   /// Fetch briefs, optionally filtered.
   Future<Map<String, dynamic>?> getBrainBriefs({
     String? status,

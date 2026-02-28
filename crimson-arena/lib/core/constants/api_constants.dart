@@ -54,6 +54,10 @@ class ApiConstants {
   /// Per-instance detail.
   static String instanceDetail(String id) => '$apiBase/brain/instances/$id';
 
+  /// Per-project budget with cost breakdown.
+  static String projectBudget(String slug) =>
+      '$apiBase/brain/projects/$slug/budget';
+
   // ---------------------------------------------------------------------------
   // Polling intervals (milliseconds)
   // ---------------------------------------------------------------------------

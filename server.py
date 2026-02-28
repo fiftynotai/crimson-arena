@@ -143,6 +143,35 @@ async def brain_request(app, path: str, params: dict = None) -> dict | None:
         return None
 
 
+async def brain_put(app, path: str, body: dict) -> dict | None:
+    """Make authenticated PUT request to brain server. Returns None on any error."""
+    if not path.startswith("/") or ".." in path:
+        raise HTTPException(status_code=400, detail="Invalid brain request path")
+
+    brain_config = app.state.brain_config
+    if not brain_config.get("url"):
+        return None
+
+    if not app.state.brain_client:
+        return None
+
+    try:
+        url = f"{brain_config['url'].rstrip('/')}{path}"
+        headers = {"Content-Type": "application/json"}
+        if brain_config.get("api_key"):
+            headers["Authorization"] = f"Bearer {brain_config['api_key']}"
+
+        resp = await app.state.brain_client.put(url, json=body, headers=headers)
+        if resp.status_code == 200:
+            return resp.json()
+        else:
+            logger.warning("Brain PUT %s returned %d", path, resp.status_code)
+            return None
+    except Exception as exc:
+        logger.warning("Brain PUT %s failed: %s", path, exc)
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Agent Leveling System
 # ---------------------------------------------------------------------------
@@ -2061,6 +2090,103 @@ async def brain_tasks(
     data = await brain_request(request.app, "/api/tasks", params=params)
     if data is None:
         return {"tasks": [], "total": 0, "limit": limit, "offset": offset, "summary": {}}
+    return data
+
+
+@app.get("/api/brain/projects/{slug}/budget")
+async def brain_project_budget(slug: str, request: Request):
+    """Per-project budget with cost enrichment from cached pricing."""
+    data = await brain_request(request.app, f"/api/projects/{slug}/budget")
+    if data is None:
+        return {
+            "project_slug": slug,
+            "by_agent": [],
+            "totals": {},
+            "cost": {},
+            "status": "offline",
+        }
+
+    pricing = getattr(request.app.state, "pricing", FALLBACK_PRICING)
+
+    # Use opus pricing as default (most common model for agents)
+    default_model = "claude-opus-4-6"
+    rates = pricing.get(default_model) or next(iter(pricing.values()), {})
+
+    input_rate = rates.get("input_cost_per_token", 0)
+    output_rate = rates.get("output_cost_per_token", 0)
+    cache_read_rate = rates.get("cache_read_input_token_cost", 0)
+    cache_create_rate = rates.get("cache_creation_input_token_cost", 0)
+
+    # Enrich totals with cost
+    totals = data.get("totals", {})
+    input_cost = round(totals.get("input_tokens", 0) * input_rate, 4)
+    output_cost = round(totals.get("output_tokens", 0) * output_rate, 4)
+    cache_read_cost = round(totals.get("cache_read", 0) * cache_read_rate, 4)
+    cache_create_cost = round(totals.get("cache_create", 0) * cache_create_rate, 4)
+    total_cost = round(input_cost + output_cost + cache_read_cost + cache_create_cost, 4)
+
+    # Alert level based on budget ratio
+    budget_limit = data.get("budget_limit")
+    if budget_limit is not None and budget_limit > 0:
+        budget_ratio = round(total_cost / budget_limit, 4)
+        if budget_ratio >= 0.9:
+            alert_level = "critical"
+        elif budget_ratio >= 0.75:
+            alert_level = "warning"
+        else:
+            alert_level = "normal"
+    else:
+        budget_ratio = None
+        alert_level = "none"
+
+    # Enrich per-agent rows with cost
+    enriched_agents = []
+    for agent in data.get("by_agent", []):
+        a_input = round(agent.get("input_tokens", 0) * input_rate, 4)
+        a_output = round(agent.get("output_tokens", 0) * output_rate, 4)
+        a_cache_read = round(agent.get("cache_read", 0) * cache_read_rate, 4)
+        a_cache_create = round(agent.get("cache_create", 0) * cache_create_rate, 4)
+        a_total = round(a_input + a_output + a_cache_read + a_cache_create, 4)
+        enriched_agents.append({
+            **agent,
+            "input_cost": a_input,
+            "output_cost": a_output,
+            "cache_read_cost": a_cache_read,
+            "cache_create_cost": a_cache_create,
+            "total_cost": a_total,
+        })
+
+    return {
+        **data,
+        "by_agent": enriched_agents,
+        "cost": {
+            "input_cost": input_cost,
+            "output_cost": output_cost,
+            "cache_read_cost": cache_read_cost,
+            "cache_create_cost": cache_create_cost,
+            "total_cost": total_cost,
+            "model_used_for_pricing": default_model,
+        },
+        "budget_ratio": budget_ratio,
+        "alert_level": alert_level,
+    }
+
+
+@app.put("/api/brain/projects/{slug}/budget")
+async def brain_project_budget_set(slug: str, request: Request):
+    """Set or update project budget threshold. Proxies to brain server."""
+    body = await request.json()
+    budget_limit = body.get("budget_limit")
+    if not isinstance(budget_limit, (int, float)) or budget_limit < 0:
+        raise HTTPException(status_code=400, detail="budget_limit must be a non-negative number")
+
+    data = await brain_put(
+        request.app,
+        f"/api/projects/{slug}/budget",
+        {"budget_limit": budget_limit, "budget_period": body.get("budget_period", "monthly")},
+    )
+    if data is None:
+        raise HTTPException(status_code=502, detail="Brain server unreachable")
     return data
 
 

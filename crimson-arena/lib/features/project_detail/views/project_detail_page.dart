@@ -7,6 +7,7 @@ import '../../../core/constants/arena_breakpoints.dart';
 import '../../../data/models/brain_event_model.dart';
 import '../../../data/models/brief_model.dart';
 import '../../../data/models/instance_model.dart';
+import '../../../data/models/project_budget_model.dart';
 import '../../../data/models/project_model.dart';
 import '../../../data/models/task_model.dart';
 import '../../../core/routing/app_routes.dart';
@@ -14,6 +15,7 @@ import '../../../shared/widgets/arena_breadcrumb.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
 import '../controllers/project_detail_view_model.dart';
 import 'widgets/project_briefs_panel.dart';
+import 'widgets/project_budget_card.dart';
 import 'widgets/project_events_panel.dart';
 import 'widgets/project_header_card.dart';
 import 'widgets/project_instances_panel.dart';
@@ -91,6 +93,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                 final briefs = vm.briefs.toList();
                 final events = vm.recentEvents.toList();
                 final tasks = vm.tasks.toList();
+                final budgetData = vm.budget.value;
                 final briefCounts = vm.briefStatusCounts;
                 final taskCounts = vm.taskStatusCounts;
                 final agentWork = vm.taskAgentWorkload;
@@ -113,11 +116,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                             _buildWideLayout(
                               project, instances, briefs, briefCounts,
                               tasks, taskCounts, agentWork, events,
+                              budgetData,
                             )
                           else
                             _buildNarrowLayout(
                               project, instances, briefs, briefCounts,
                               tasks, taskCounts, agentWork, events,
+                              budgetData,
                             ),
                         ],
                       ),
@@ -138,6 +143,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     Map<String, int> taskCounts,
     Map<String, int> agentWork,
     List<BrainEventModel> events,
+    ProjectBudgetModel? budgetData,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,6 +153,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             children: [
               ProjectHeaderCard(project: project),
               const SizedBox(height: FiftySpacing.sm),
+              if (budgetData != null) ...[
+                ProjectBudgetCard(budget: budgetData),
+                const SizedBox(height: FiftySpacing.sm),
+              ],
               ProjectInstancesPanel(instances: instances),
             ],
           ),
@@ -180,11 +190,16 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     Map<String, int> taskCounts,
     Map<String, int> agentWork,
     List<BrainEventModel> events,
+    ProjectBudgetModel? budgetData,
   ) {
     return Column(
       children: [
         ProjectHeaderCard(project: project),
         const SizedBox(height: FiftySpacing.sm),
+        if (budgetData != null) ...[
+          ProjectBudgetCard(budget: budgetData),
+          const SizedBox(height: FiftySpacing.sm),
+        ],
         ProjectInstancesPanel(instances: instances),
         const SizedBox(height: FiftySpacing.sm),
         ProjectBriefsPanel(briefs: briefs, statusCounts: briefCounts),

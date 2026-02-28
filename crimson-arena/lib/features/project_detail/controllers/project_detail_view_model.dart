@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../data/models/brain_event_model.dart';
 import '../../../data/models/brief_model.dart';
 import '../../../data/models/instance_model.dart';
+import '../../../data/models/project_budget_model.dart';
 import '../../../data/models/project_model.dart';
 import '../../../data/models/task_model.dart';
 import '../../../services/brain_api_service.dart';
@@ -48,6 +49,9 @@ class ProjectDetailViewModel extends GetxController {
   /// Recent events for this project.
   final RxList<BrainEventModel> recentEvents = <BrainEventModel>[].obs;
 
+  /// Budget and cost breakdown for this project.
+  final Rx<ProjectBudgetModel?> budget = Rx<ProjectBudgetModel?>(null);
+
   // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
@@ -78,6 +82,7 @@ class ProjectDetailViewModel extends GetxController {
     briefs.clear();
     tasks.clear();
     recentEvents.clear();
+    budget.value = null;
 
     // Resolve project model from the ProjectSelectorService cache.
     project.value =
@@ -89,6 +94,7 @@ class ProjectDetailViewModel extends GetxController {
       _fetchBriefs(slug),
       _fetchTasks(slug),
       _fetchEvents(slug),
+      _fetchBudget(slug),
     ]);
 
     isLoading.value = false;
@@ -107,6 +113,7 @@ class ProjectDetailViewModel extends GetxController {
       _fetchBriefs(slug),
       _fetchTasks(slug),
       _fetchEvents(slug),
+      _fetchBudget(slug),
     ]);
   }
 
@@ -159,6 +166,13 @@ class ProjectDetailViewModel extends GetxController {
           .whereType<Map<String, dynamic>>()
           .map(BrainEventModel.fromJson)
           .toList();
+    }
+  }
+
+  Future<void> _fetchBudget(String slug) async {
+    final data = await _api.getProjectBudget(slug);
+    if (data != null) {
+      budget.value = ProjectBudgetModel.fromJson(data);
     }
   }
 
