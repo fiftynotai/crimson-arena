@@ -1,11 +1,16 @@
+import 'dart:math';
+
 import 'package:crimson_arena/core/constants/arena_colors.dart';
 import 'package:crimson_arena/core/constants/arena_sizes.dart';
+import 'package:crimson_arena/core/routing/app_routes.dart';
 import 'package:crimson_arena/core/theme/arena_text_styles.dart';
 import 'package:fifty_tokens/fifty_tokens.dart';
 import 'package:fifty_ui/fifty_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../data/models/task_model.dart';
+import 'task_detail_modal.dart';
 
 /// A single task card for the kanban board.
 ///
@@ -26,6 +31,7 @@ class TaskCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: FiftySpacing.sm),
       child: FiftyCard(
+        onTap: () => TaskDetailModal.show(context, task),
         scanlineOnHover: true,
         hoverScale: 1.0,
         borderRadius: FiftyRadii.lgRadius,
@@ -48,7 +54,7 @@ class TaskCard extends StatelessWidget {
                       ),
                       const SizedBox(height: FiftySpacing.xs),
 
-                      // Type badge + priority dots row
+                      // Type badge + priority dots + retry + effort row
                       Row(
                         children: [
                           // Task type badge
@@ -59,8 +65,31 @@ class TaskCard extends StatelessWidget {
                           ),
                           const SizedBox(width: FiftySpacing.xs),
 
+                          // Effort estimate badge
+                          if (_effort != null) ...[
+                            FiftyBadge(
+                              label: _effort!.toUpperCase(),
+                              customColor: colorScheme.primary.withValues(
+                                alpha: 0.7,
+                              ),
+                              showGlow: false,
+                            ),
+                            const SizedBox(width: FiftySpacing.xs),
+                          ],
+
                           // Priority dots
                           _buildPriorityDots(context, task.priority),
+
+                          // Retry count badge
+                          if (task.retryCount > 0) ...[
+                            const SizedBox(width: FiftySpacing.xs),
+                            FiftyBadge(
+                              label:
+                                  'RETRY ${task.retryCount}/${task.maxRetries}',
+                              variant: FiftyBadgeVariant.warning,
+                              showGlow: false,
+                            ),
+                          ],
 
                           const Spacer(),
 
@@ -105,17 +134,60 @@ class TaskCard extends StatelessWidget {
                             const SizedBox(width: FiftySpacing.sm),
                           ],
 
-                          // Brief ID
+                          // Brief ID (clickable)
                           if (task.briefId != null &&
                               task.briefId!.isNotEmpty) ...[
-                            Text(
-                              task.briefId!,
-                              style: ArenaTextStyles.mono(
-                                context,
-                                fontSize: ArenaSizes.monoFontSizeMicro,
-                                fontWeight: FiftyTypography.semiBold,
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
+                            GestureDetector(
+                              onTap: task.projectSlug != null
+                                  ? () => Get.toNamed(
+                                        '/projects/${task.projectSlug}',
+                                      )
+                                  : null,
+                              child: Text(
+                                task.briefId!,
+                                style: ArenaTextStyles.mono(
+                                  context,
+                                  fontSize: ArenaSizes.monoFontSizeMicro,
+                                  fontWeight: FiftyTypography.semiBold,
+                                  color: task.projectSlug != null
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: FiftySpacing.sm),
+                          ],
+
+                          // Instance ID (clickable)
+                          if (_instanceId != null) ...[
+                            GestureDetector(
+                              onTap: () =>
+                                  Get.toNamed(AppRoutes.instances),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.dns_outlined,
+                                    size: 10,
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                  const SizedBox(width: ArenaSizes.microGap),
+                                  Text(
+                                    _instanceId!.substring(
+                                      0,
+                                      min(8, _instanceId!.length),
+                                    ),
+                                    style: ArenaTextStyles.mono(
+                                      context,
+                                      fontSize: ArenaSizes.monoFontSizeMicro,
+                                      fontWeight: FiftyTypography.medium,
+                                      color: colorScheme.primary
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: FiftySpacing.sm),
@@ -159,6 +231,15 @@ class TaskCard extends StatelessWidget {
               ),
             );
           }
+
+  /// Instance ID extracted from task metadata.
+  String? get _instanceId => task.metadata['instance_id'] as String?;
+
+  /// Effort estimate extracted from task metadata.
+  String? get _effort {
+    final e = task.metadata['effort'] as String?;
+    return (e != null && e.isNotEmpty) ? e : null;
+  }
 
   Widget _buildPriorityDots(BuildContext context, int priority) {
     final color = ArenaColors.taskPriorityColor(priority);
