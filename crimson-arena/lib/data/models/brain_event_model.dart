@@ -47,6 +47,26 @@ class BrainEventModel {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Convenience getters for context correlation
+  // ---------------------------------------------------------------------------
+
+  /// Extracts the brief ID from the event payload.
+  ///
+  /// Brief events use `brief_id`; some payloads also use `briefId`.
+  String? get briefId =>
+      payload['brief_id'] as String? ?? payload['briefId'] as String?;
+
+  /// Extracts the task ID from the event payload.
+  ///
+  /// Task events use `task_id`; `task.failed` uses camelCase `taskId`.
+  String? get taskId =>
+      payload['task_id'] as String? ?? payload['taskId'] as String?;
+
+  /// Whether this event has any navigable context links.
+  bool get hasContextLinks =>
+      briefId != null || taskId != null || instanceId != null;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'event_name': eventName,

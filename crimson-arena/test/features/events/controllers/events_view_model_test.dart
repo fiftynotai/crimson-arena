@@ -84,7 +84,13 @@ void main() {
       expect(vm.components, contains('monitoring'));
       expect(vm.components, contains('sync'));
       expect(vm.components, contains('instances'));
-      expect(vm.components.length, 7);
+      expect(vm.components, contains('briefs'));
+      expect(vm.components, contains('sessions'));
+      expect(vm.components, contains('memory'));
+      expect(vm.components, contains('errors'));
+      expect(vm.components, contains('projects'));
+      expect(vm.components, contains('metrics'));
+      expect(vm.components.length, 13);
     });
 
     test('setComponentFilter toggles component selection', () {
@@ -286,6 +292,141 @@ void main() {
       expect(restored.projectSlug, original.projectSlug);
       expect(restored.instanceId, original.instanceId);
       expect(restored.createdAt, original.createdAt);
+    });
+
+    group('context correlation getters', () {
+      test('briefId extracts brief_id from payload', () {
+        final model = BrainEventModel(
+          id: 10,
+          eventName: 'brief.created',
+          component: 'briefs',
+          payload: {'brief_id': 'BR-001'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.briefId, 'BR-001');
+      });
+
+      test('briefId extracts camelCase briefId from payload', () {
+        final model = BrainEventModel(
+          id: 11,
+          eventName: 'brief.updated',
+          component: 'briefs',
+          payload: {'briefId': 'BR-002'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.briefId, 'BR-002');
+      });
+
+      test('briefId returns null when not in payload', () {
+        final model = BrainEventModel(
+          id: 12,
+          eventName: 'heartbeat',
+          component: 'monitoring',
+          payload: {'uptime': 3600},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.briefId, isNull);
+      });
+
+      test('taskId extracts task_id from payload', () {
+        final model = BrainEventModel(
+          id: 13,
+          eventName: 'task.claimed',
+          component: 'tasks',
+          payload: {'task_id': 'T-001'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.taskId, 'T-001');
+      });
+
+      test('taskId extracts camelCase taskId from payload', () {
+        final model = BrainEventModel(
+          id: 14,
+          eventName: 'task.failed',
+          component: 'tasks',
+          payload: {'taskId': 'T-002'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.taskId, 'T-002');
+      });
+
+      test('taskId returns null when not in payload', () {
+        final model = BrainEventModel(
+          id: 15,
+          eventName: 'heartbeat',
+          component: 'monitoring',
+          payload: {},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.taskId, isNull);
+      });
+
+      test('hasContextLinks is true when briefId present', () {
+        final model = BrainEventModel(
+          id: 16,
+          eventName: 'brief.created',
+          component: 'briefs',
+          payload: {'brief_id': 'BR-001'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.hasContextLinks, isTrue);
+      });
+
+      test('hasContextLinks is true when taskId present', () {
+        final model = BrainEventModel(
+          id: 17,
+          eventName: 'task.claimed',
+          component: 'tasks',
+          payload: {'task_id': 'T-001'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.hasContextLinks, isTrue);
+      });
+
+      test('hasContextLinks is true when instanceId present', () {
+        final model = BrainEventModel(
+          id: 18,
+          eventName: 'instance.registered',
+          component: 'instances',
+          payload: {},
+          instanceId: 'inst-001',
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.hasContextLinks, isTrue);
+      });
+
+      test('hasContextLinks is false when no context IDs', () {
+        final model = BrainEventModel(
+          id: 19,
+          eventName: 'heartbeat',
+          component: 'monitoring',
+          payload: {'uptime': 3600},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.hasContextLinks, isFalse);
+      });
+
+      test('brief_id takes precedence over briefId', () {
+        final model = BrainEventModel(
+          id: 20,
+          eventName: 'brief.created',
+          component: 'briefs',
+          payload: {'brief_id': 'BR-001', 'briefId': 'BR-002'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.briefId, 'BR-001');
+      });
+
+      test('task_id takes precedence over taskId', () {
+        final model = BrainEventModel(
+          id: 21,
+          eventName: 'task.claimed',
+          component: 'tasks',
+          payload: {'task_id': 'T-001', 'taskId': 'T-002'},
+          createdAt: '2026-02-26T12:00:00Z',
+        );
+        expect(model.taskId, 'T-001');
+      });
     });
   });
 }

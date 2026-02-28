@@ -10,6 +10,8 @@ import '../../../../data/models/brain_event_model.dart';
 import '../../../../shared/utils/format_utils.dart';
 import '../../../../shared/widgets/arena_hover_button.dart';
 import '../../controllers/events_view_model.dart';
+import 'event_context_chips.dart';
+import 'event_detail_modal.dart';
 import 'live_event_card.dart';
 
 /// Panel showing paginated event history from the REST API.
@@ -457,6 +459,8 @@ class _EventHistoryRow extends StatelessWidget {
 
   Widget _buildExpandedPayload(BuildContext context, ColorScheme colorScheme) {
     final prettyPayload = _prettyPayload(event.payload);
+    final hasContext =
+        event.hasContextLinks || event.projectSlug != null;
 
     return AnimatedSize(
       duration: FiftyMotion.fast,
@@ -473,15 +477,46 @@ class _EventHistoryRow extends StatelessWidget {
             ),
           ),
         ),
-        child: SelectableText(
-          prettyPayload,
-          style: ArenaTextStyles.mono(
-            context,
-            fontSize: 11,
-            fontWeight: FiftyTypography.regular,
-            color: colorScheme.onSurface.withValues(alpha: 0.7),
-            height: 1.4,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Context chips
+            if (hasContext) ...[
+              EventContextChips(event: event),
+              const SizedBox(height: FiftySpacing.sm),
+            ],
+
+            // Payload JSON
+            SelectableText(
+              prettyPayload,
+              style: ArenaTextStyles.mono(
+                context,
+                fontSize: 11,
+                fontWeight: FiftyTypography.regular,
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+                height: 1.4,
+              ),
+            ),
+
+            // VIEW DETAIL button
+            const SizedBox(height: FiftySpacing.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ArenaHoverButton(
+                onTap: () => EventDetailModal.show(context, event),
+                child: Text(
+                  'VIEW DETAIL',
+                  style: ArenaTextStyles.mono(
+                    context,
+                    fontSize: FiftyTypography.labelSmall,
+                    fontWeight: FiftyTypography.bold,
+                    color: colorScheme.primary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

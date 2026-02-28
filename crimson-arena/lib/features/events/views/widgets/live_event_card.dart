@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/arena_text_styles.dart';
 import '../../../../data/models/brain_event_model.dart';
 import '../../../../shared/utils/format_utils.dart';
+import 'event_detail_modal.dart';
 
 /// Component-to-color mapping for event badges.
 ///
@@ -106,75 +107,93 @@ class _LiveEventCardState extends State<LiveEventCard>
         opacity: _fadeAnimation,
         child: Padding(
           padding: const EdgeInsets.only(bottom: FiftySpacing.xs),
-          child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: FiftyRadii.smRadius,
-              border: Border(
-                left: BorderSide(color: color, width: 3),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: FiftySpacing.sm,
-              vertical: FiftySpacing.xs,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Timestamp
-                Text(
-                  '[$timestamp]',
-                  style: ArenaTextStyles.mono(
-                    context,
-                    fontSize: FiftyTypography.labelSmall,
-                    fontWeight: FiftyTypography.medium,
-                    color: colorScheme.onSurface.withValues(alpha: 0.4),
+          child: GestureDetector(
+            onTap: () => EventDetailModal.show(context, event),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: FiftyRadii.smRadius,
+                  border: Border(
+                    left: BorderSide(color: color, width: 3),
                   ),
                 ),
-                const SizedBox(width: FiftySpacing.xs),
-
-                // Component badge
-                FiftyBadge(
-                  label: event.component.toUpperCase(),
-                  customColor: color,
-                  showGlow: false,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: FiftySpacing.sm,
+                  vertical: FiftySpacing.xs,
                 ),
-                const SizedBox(width: FiftySpacing.xs),
-
-                // Event name + payload summary
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        event.eventName,
-                        style: textTheme.labelSmall!.copyWith(
-                          fontWeight: FiftyTypography.semiBold,
-                          color: colorScheme.onSurface,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Timestamp
+                    Text(
+                      '[$timestamp]',
+                      style: ArenaTextStyles.mono(
+                        context,
+                        fontSize: FiftyTypography.labelSmall,
+                        fontWeight: FiftyTypography.medium,
+                        color: colorScheme.onSurface.withValues(alpha: 0.4),
                       ),
-                      if (payloadSummary.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          payloadSummary,
-                          style: ArenaTextStyles.mono(
-                            context,
-                            fontSize: 10,
-                            fontWeight: FiftyTypography.regular,
-                            color: colorScheme.onSurfaceVariant.withValues(
-                              alpha: 0.6,
+                    ),
+                    const SizedBox(width: FiftySpacing.xs),
+
+                    // Component badge
+                    FiftyBadge(
+                      label: event.component.toUpperCase(),
+                      customColor: color,
+                      showGlow: false,
+                    ),
+                    const SizedBox(width: FiftySpacing.xs),
+
+                    // Event name + payload summary
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.eventName,
+                            style: textTheme.labelSmall!.copyWith(
+                              fontWeight: FiftyTypography.semiBold,
+                              color: colorScheme.onSurface,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          if (payloadSummary.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              payloadSummary,
+                              style: ArenaTextStyles.mono(
+                                context,
+                                fontSize: 10,
+                                fontWeight: FiftyTypography.regular,
+                                color:
+                                    colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    // Context link indicator
+                    if (event.hasContextLinks)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, top: 2),
+                        child: Icon(
+                          Icons.link,
+                          size: 12,
+                          color: colorScheme.primary.withValues(alpha: 0.6),
                         ),
-                      ],
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
