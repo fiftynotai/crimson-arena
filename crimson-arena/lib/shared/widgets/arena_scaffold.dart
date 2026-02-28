@@ -12,9 +12,10 @@ import 'project_selector_dropdown.dart';
 /// Shared scaffold for all Crimson Arena pages.
 ///
 /// Provides:
-/// - Top navigation bar with page tabs (HOME, INSTANCES, EVENTS, TASKS, AGENTS, ACHIEVEMENTS, SKILLS, OPERATIONS)
+/// - Top navigation bar with page tabs (HOME, INSTANCES, EVENTS, TASKS, AGENTS, OPERATIONS)
+/// - Overflow menu for secondary pages (ACHIEVEMENTS, SKILLS)
 /// - Connection status badge (LIVE / OFFLINE)
-/// - Keyboard shortcuts (Ctrl+1..8)
+/// - Keyboard shortcuts (Ctrl+1..6)
 /// - Consistent dark theme styling with FDL v2 tokens
 /// - Responsive nav: collapses to abbreviated tabs below 600px
 class ArenaScaffold extends StatelessWidget {
@@ -24,7 +25,7 @@ class ArenaScaffold extends StatelessWidget {
   /// The page body content.
   final Widget body;
 
-  /// Index of the currently active tab (0-7).
+  /// Index of the currently active tab (0-5), or -1 for secondary pages.
   final int activeTabIndex;
 
   const ArenaScaffold({
@@ -41,21 +42,18 @@ class ArenaScaffold extends StatelessWidget {
     _TabDef(label: 'TASKS', shortLabel: 'TK', route: AppRoutes.tasks),
     _TabDef(label: 'AGENTS', shortLabel: 'AG', route: AppRoutes.agents),
     _TabDef(
-      label: 'ACHIEVEMENTS',
-      shortLabel: 'AC',
-      route: AppRoutes.achievements,
-    ),
-    _TabDef(
-      label: 'SKILLS',
-      shortLabel: 'SK',
-      route: AppRoutes.skills,
-    ),
-    _TabDef(
       label: 'OPERATIONS',
       shortLabel: 'OP',
       route: AppRoutes.operations,
     ),
   ];
+
+  /// Routes for secondary pages accessed via the overflow menu.
+  /// Used to detect active state on the overflow icon.
+  static const _secondaryRoutes = {
+    AppRoutes.achievements,
+    AppRoutes.skills,
+  };
 
   /// Width threshold below which the nav collapses to compact mode.
   static const double _narrowBreakpoint = ArenaBreakpoints.narrow;
@@ -79,10 +77,6 @@ class ArenaScaffold extends StatelessWidget {
             () => _navigateTo(4),
         const SingleActivator(LogicalKeyboardKey.digit6, control: true):
             () => _navigateTo(5),
-        const SingleActivator(LogicalKeyboardKey.digit7, control: true):
-            () => _navigateTo(6),
-        const SingleActivator(LogicalKeyboardKey.digit8, control: true):
-            () => _navigateTo(7),
       },
       child: Focus(
         autofocus: true,
@@ -180,6 +174,9 @@ class ArenaScaffold extends StatelessWidget {
                     compact: isNarrow,
                   )),
 
+              // Overflow menu for secondary pages (Achievements, Skills).
+              _buildOverflowMenu(context, compact: isNarrow),
+
               const Spacer(),
 
               // Connection status badge
@@ -235,6 +232,110 @@ class ArenaScaffold extends StatelessWidget {
               color: isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
               letterSpacing: FiftyTypography.letterSpacingLabelMedium,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Overflow "more" menu for secondary pages not shown in the main tab bar.
+  Widget _buildOverflowMenu(BuildContext context, {bool compact = false}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final currentRoute = Get.currentRoute;
+    final isSecondaryActive = _secondaryRoutes.contains(currentRoute);
+
+    return Padding(
+      padding: const EdgeInsets.only(right: FiftySpacing.xs),
+      child: PopupMenuButton<String>(
+        tooltip: 'More pages',
+        offset: const Offset(0, 40),
+        color: colorScheme.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(
+          borderRadius: FiftyRadii.smRadius,
+          side: BorderSide(color: colorScheme.outline, width: 1),
+        ),
+        onSelected: (route) => Get.offNamed(route),
+        itemBuilder: (_) => [
+          PopupMenuItem<String>(
+            value: AppRoutes.achievements,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.emoji_events,
+                  size: 16,
+                  color: currentRoute == AppRoutes.achievements
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: FiftySpacing.sm),
+                Text(
+                  'ACHIEVEMENTS',
+                  style: textTheme.labelMedium!.copyWith(
+                    fontWeight: currentRoute == AppRoutes.achievements
+                        ? FiftyTypography.bold
+                        : FiftyTypography.medium,
+                    color: currentRoute == AppRoutes.achievements
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
+                    letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuItem<String>(
+            value: AppRoutes.skills,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 16,
+                  color: currentRoute == AppRoutes.skills
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: FiftySpacing.sm),
+                Text(
+                  'SKILLS',
+                  style: textTheme.labelMedium!.copyWith(
+                    fontWeight: currentRoute == AppRoutes.skills
+                        ? FiftyTypography.bold
+                        : FiftyTypography.medium,
+                    color: currentRoute == AppRoutes.skills
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
+                    letterSpacing: FiftyTypography.letterSpacingLabelMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? FiftySpacing.sm : FiftySpacing.md,
+            vertical: FiftySpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: isSecondaryActive
+                ? colorScheme.primary.withValues(alpha: 0.15)
+                : Colors.transparent,
+            borderRadius: FiftyRadii.smRadius,
+            border: isSecondaryActive
+                ? Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    width: 1,
+                  )
+                : null,
+          ),
+          child: Icon(
+            Icons.more_horiz,
+            size: 18,
+            color: isSecondaryActive
+                ? colorScheme.onSurface
+                : colorScheme.onSurfaceVariant,
           ),
         ),
       ),

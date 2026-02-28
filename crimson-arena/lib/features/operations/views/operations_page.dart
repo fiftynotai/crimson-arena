@@ -33,7 +33,7 @@ class OperationsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ArenaScaffold(
       title: 'OPERATIONS',
-      activeTabIndex: 7,
+      activeTabIndex: 5,
       body: GetX<OperationsViewModel>(
         builder: (vm) {
           if (vm.isLoading.value) {
