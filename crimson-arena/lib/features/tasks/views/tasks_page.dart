@@ -9,7 +9,7 @@ import '../../../services/project_selector_service.dart';
 import '../../../shared/widgets/arena_hover_button.dart';
 import '../../../shared/widgets/arena_page_header.dart';
 import '../../../shared/widgets/arena_scaffold.dart';
-import '../controllers/tasks_view_model.dart';
+import '../controllers/tasks_view_model.dart' show TasksViewModel, TimeRange;
 import 'widgets/agent_workload_bar.dart';
 import 'widgets/task_column.dart';
 
@@ -98,22 +98,13 @@ class _TasksPageState extends State<TasksPage> {
             // Header row
             Obx(() => ArenaPageHeader(
                   title: 'TASKS',
-                  summary: '${vm.totalCount} tasks',
+                  summary: vm.headerSummary,
                   onRefresh: vm.refreshData,
                   horizontalPadding: hPad,
                 )),
 
-            // Filter chips
-            Obx(() {
-              final hasFilters = vm.selectedProject.value != null ||
-                  vm.selectedAssignee.value != null;
-              if (!hasFilters &&
-                  vm.availableProjects.isEmpty &&
-                  vm.availableAssignees.isEmpty) {
-                return const SizedBox.shrink();
-              }
-              return _buildFilters(context, vm, hPad);
-            }),
+            // Filter chips (always visible for time range)
+            Obx(() => _buildFilters(context, vm, hPad)),
 
             // Agent workload bar
             Obx(() {
@@ -286,12 +277,45 @@ class _TasksPageState extends State<TasksPage> {
     final globalProjectSelected =
         Get.find<ProjectSelectorService>().selectedProjectSlug.value != null;
 
+    final hasNonTimeFilters = vm.selectedProject.value != null ||
+        vm.selectedAssignee.value != null ||
+        vm.selectedTimeRange.value != TimeRange.allTime;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(hPad, 0, hPad, FiftySpacing.sm),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
+            // Time range filter chips (always visible).
+            ...TimeRange.values.map((range) {
+              final isSelected = vm.selectedTimeRange.value == range;
+              return Padding(
+                padding: const EdgeInsets.only(right: FiftySpacing.xs),
+                child: FiftyChip(
+                  label: range.label,
+                  selected: isSelected,
+                  onTap: () => vm.filterByTimeRange(range),
+                ),
+              );
+            }),
+
+            // Separator between time range and project/assignee chips.
+            if ((!globalProjectSelected &&
+                    vm.availableProjects.isNotEmpty) ||
+                vm.availableAssignees.isNotEmpty)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: FiftySpacing.xs),
+                child: Text(
+                  '|',
+                  style: textTheme.bodySmall!.copyWith(
+                    color: colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+
             // Project filter chips (hidden when global project is selected).
             if (!globalProjectSelected)
               ...vm.availableProjects.map((project) {
@@ -317,7 +341,8 @@ class _TasksPageState extends State<TasksPage> {
                 child: Text(
                   '|',
                   style: textTheme.bodySmall!.copyWith(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    color: colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.3),
                   ),
                 ),
               ),
@@ -338,8 +363,7 @@ class _TasksPageState extends State<TasksPage> {
             }),
 
             // Clear all filters
-            if (vm.selectedProject.value != null ||
-                vm.selectedAssignee.value != null)
+            if (hasNonTimeFilters)
               ArenaHoverButton(
                 onTap: vm.clearFilters,
                 child: Text(

@@ -5,6 +5,28 @@ import '../../../services/brain_api_service.dart';
 import '../../../services/brain_websocket_service.dart';
 import '../../../services/project_selector_service.dart';
 
+/// Time range presets for filtering tasks by creation date.
+enum TimeRange {
+  today,
+  thisWeek,
+  thisMonth,
+  allTime;
+
+  /// Display label for the time range chip.
+  String get label {
+    switch (this) {
+      case TimeRange.today:
+        return 'TODAY';
+      case TimeRange.thisWeek:
+        return 'THIS WEEK';
+      case TimeRange.thisMonth:
+        return 'THIS MONTH';
+      case TimeRange.allTime:
+        return 'ALL TIME';
+    }
+  }
+}
+
 /// ViewModel for the Tasks page.
 ///
 /// Fetches brain tasks via REST and subscribes to task updates
@@ -54,6 +76,9 @@ class TasksViewModel extends GetxController {
   /// Selected assignee filter (null = all assignees).
   final selectedAssignee = Rxn<String>();
 
+  /// Selected time range filter.
+  final selectedTimeRange = TimeRange.allTime.obs;
+
   /// Instance context for display when drilled from Instances page.
   final instanceContextId = Rxn<String>();
   final instanceContextHostname = Rxn<String>();
@@ -64,6 +89,9 @@ class TasksViewModel extends GetxController {
 
   /// Whether the initial data load is in progress.
   final RxBool isLoading = true.obs;
+
+  /// Cached last parsed data so time-range re-filters can reuse it.
+  Map<String, dynamic>? _lastParsedData;
 
   // -------------------------------------------------------------------------
   // Agent workload
@@ -90,6 +118,16 @@ class TasksViewModel extends GetxController {
       doneTasks.length +
       cancelledTasks.length +
       failedTasks.length;
+
+  /// Summary text for the page header, including done ratio when filtered.
+  String get headerSummary {
+    final total = totalCount;
+    final done = doneTasks.length;
+    if (selectedTimeRange.value == TimeRange.allTime) {
+      return '$total tasks';
+    }
+    return '$total tasks \u2014 $done/$total done';
+  }
 
   // -------------------------------------------------------------------------
   // Lifecycle
@@ -146,6 +184,8 @@ class TasksViewModel extends GetxController {
   /// ```
   void _parseTasks(Map<String, dynamic>? data) {
     if (data == null) return;
+
+    _lastParsedData = data;
 
     // Parse task list
     final rawTasks = data['tasks'];
@@ -233,6 +273,28 @@ class TasksViewModel extends GetxController {
         task.assignee != selectedAssignee.value) {
       return false;
     }
+
+    // Time range filter
+    if (selectedTimeRange.value != TimeRange.allTime) {
+      final createdAt = DateTime.tryParse(task.createdAt);
+      if (createdAt == null) return false;
+
+      final now = DateTime.now().toUtc();
+      late final DateTime rangeStart;
+      switch (selectedTimeRange.value) {
+        case TimeRange.today:
+          rangeStart = DateTime.utc(now.year, now.month, now.day);
+        case TimeRange.thisWeek:
+          final weekday = now.weekday; // Monday = 1
+          rangeStart = DateTime.utc(now.year, now.month, now.day - weekday + 1);
+        case TimeRange.thisMonth:
+          rangeStart = DateTime.utc(now.year, now.month);
+        case TimeRange.allTime:
+          break; // unreachable
+      }
+      if (createdAt.toUtc().isBefore(rangeStart)) return false;
+    }
+
     return true;
   }
 
@@ -284,21 +346,28 @@ class TasksViewModel extends GetxController {
   void filterByProject(String? project) {
     selectedProject.value = project;
     // Re-parse with new filter
-    _parseTasks(_ws.brainTasks.value);
+    _parseTasks(_lastParsedData ?? _ws.brainTasks.value);
   }
 
   /// Set assignee filter. Pass null to clear.
   void filterByAssignee(String? assignee) {
     selectedAssignee.value = assignee;
     // Re-parse with new filter
-    _parseTasks(_ws.brainTasks.value);
+    _parseTasks(_lastParsedData ?? _ws.brainTasks.value);
+  }
+
+  /// Set time range filter.
+  void filterByTimeRange(TimeRange range) {
+    selectedTimeRange.value = range;
+    _parseTasks(_lastParsedData ?? _ws.brainTasks.value);
   }
 
   /// Clear all filters.
   void clearFilters() {
     selectedProject.value = null;
     selectedAssignee.value = null;
+    selectedTimeRange.value = TimeRange.allTime;
     clearInstanceContext();
-    _parseTasks(_ws.brainTasks.value);
+    _parseTasks(_lastParsedData ?? _ws.brainTasks.value);
   }
 }
